@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Coffee Chasers",
+    "slug": "coffeechasers-frontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "@rnmapbox/maps",
+      "expo-location"
+    ]
+  }
+}
