@@ -41,15 +41,16 @@ Notes:
 This app is configured as a native-first Expo project.
 
 ```bash
-npm install
-npm run start
+corepack enable
+pnpm install
+pnpm start
 ```
 
 For native map rendering, use a development build (Expo Go does not support `@rnmapbox/maps`):
 
 ```bash
-npx expo install expo-dev-client
-npx expo run:android
+pnpm expo install expo-dev-client
+pnpm android
 ```
 
 ## API Coverage
