@@ -17,6 +17,16 @@ export class ApiError extends Error {
   }
 }
 
+function getNetworkErrorMessage() {
+  const isLocalhost = API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1');
+
+  if (isLocalhost) {
+    return `Unable to reach API at ${API_BASE_URL}. On a phone, localhost points to the phone itself. Use your machine LAN IP or a tunnel URL instead.`;
+  }
+
+  return `Unable to reach API at ${API_BASE_URL}. Check that the backend server is running and reachable from this device.`;
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const controller = new AbortController();
@@ -34,10 +44,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       signal: controller.signal
     });
   } catch {
-    throw new ApiError(
-      `Unable to reach API at ${API_BASE_URL}. On a phone, localhost points to the phone itself. Use your machine LAN IP instead.`,
-      0
-    );
+    throw new ApiError(getNetworkErrorMessage(), 0);
   } finally {
     clearTimeout(timeoutId);
   }

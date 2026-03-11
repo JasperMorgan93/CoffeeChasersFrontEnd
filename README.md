@@ -38,9 +38,18 @@ Notes:
 
 ## Run
 
+This app is configured as a native-first Expo project.
+
 ```bash
 npm install
 npm run start
+```
+
+For native map rendering, use a development build (Expo Go does not support `@rnmapbox/maps`):
+
+```bash
+npx expo install expo-dev-client
+npx expo run:android
 ```
 
 ## API Coverage
