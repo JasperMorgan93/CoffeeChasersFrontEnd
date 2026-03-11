@@ -1,18 +1,12 @@
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import { AppButton } from '../../components/AppButton';
+import { StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 
-export default function About() {
-  const handleLearnMore = () => {
-    Alert.alert('Coffee Chasers', 'More details coming soon.');
-  };
-
+export default function Profile() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>About</Text>
-      <Text style={styles.subtitle}>Coffee Chasers</Text>
-      <AppButton label="Learn More" onPress={handleLearnMore} style={styles.button} />
+      <Text style={styles.title}>My Profile</Text>
+      <Text style={styles.subtitle}>Your account details will appear here.</Text>
     </View>
   );
 }
@@ -23,6 +17,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: TYPOGRAPHY.spacing.lg,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.title,
@@ -34,8 +29,5 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.body,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimary,
-  },
-  button: {
-    marginTop: TYPOGRAPHY.spacing.md,
   },
 });

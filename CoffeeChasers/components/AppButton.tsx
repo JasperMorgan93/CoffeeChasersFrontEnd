@@ -1,4 +1,14 @@
-import { Pressable, StyleSheet, Text, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  type GestureResponderEvent,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
+import { COLORS } from '../constants/colors';
+import { TYPOGRAPHY } from '../constants/typography';
 
 type AppButtonProps = {
   label: string;
@@ -8,13 +18,7 @@ type AppButtonProps = {
   textStyle?: StyleProp<TextStyle>;
 };
 
-export function AppButton({
-  label,
-  onPress,
-  disabled = false,
-  style,
-  textStyle,
-}: AppButtonProps) {
+export function AppButton({ label, onPress, disabled = false, style, textStyle }: AppButtonProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -24,7 +28,8 @@ export function AppButton({
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.buttonPressed,
         style,
-      ]}>
+      ]}
+    >
       <Text style={[styles.label, textStyle]}>{label}</Text>
     </Pressable>
   );
@@ -32,9 +37,9 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#352924',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.textPrimary,
+    paddingVertical: TYPOGRAPHY.spacing.sm,
+    paddingHorizontal: TYPOGRAPHY.spacing.lg,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -46,8 +51,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
-    color: '#af8874',
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.background,
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
   },
 });

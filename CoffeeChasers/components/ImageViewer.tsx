@@ -7,11 +7,7 @@ type ImageViewerProps = {
   style?: StyleProp<ImageStyle>;
 };
 
-export function ImageViewer({
-  source,
-  opacity = 0.35,
-  style,
-}: ImageViewerProps) {
+export function ImageViewer({ source, opacity = 0.35, style }: ImageViewerProps) {
   return (
     <Image
       source={source}
