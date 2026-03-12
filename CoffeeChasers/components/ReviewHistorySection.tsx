@@ -8,8 +8,9 @@ export type ReviewHistoryEntry = {
   id: string;
   cafeName: string;
   rating: number;
-  coffeeType: string;
+  coffeeType?: string;
   reviewDate: string;
+  notes?: string;
 };
 
 type ReviewHistorySectionProps = {
@@ -42,7 +43,7 @@ export function ReviewHistorySection({ entries }: ReviewHistorySectionProps) {
               ))}
             </View>
 
-            <Text style={styles.notes}>{entry.notes}</Text>
+            {entry.notes && <Text style={styles.notes}>{entry.notes}</Text>}
           </View>
         ))
       )}

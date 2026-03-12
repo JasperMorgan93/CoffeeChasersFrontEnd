@@ -1,11 +1,11 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Pressable } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { ReviewHistorySection } from '../../components/ReviewHistorySection';
 import { useReviewHistory } from '../../hooks/useReviewHistory';
 
 export default function Profile() {
-  const { reviewHistory, isLoading, error, refetch } = useReviewHistory();
+  const { reviewHistory, isLoading, error, refetch, isRefetching } = useReviewHistory();
 
   const renderReviewSection = () => {
     if (isLoading) {
@@ -21,9 +21,17 @@ export default function Profile() {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
-          <Text style={styles.retryText} onPress={refetch}>
-            Tap to retry
-          </Text>
+          <Pressable 
+            style={styles.retryButton} 
+            onPress={refetch}
+            disabled={isRefetching}
+          >
+            {isRefetching ? (
+              <ActivityIndicator size="small" color={COLORS.textPrimary} />
+            ) : (
+              <Text style={styles.retryText}>Tap to retry</Text>
+            )}
+          </Pressable>
         </View>
       );
     }
@@ -95,11 +103,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: TYPOGRAPHY.spacing.md,
   },
+  retryButton: {
+    paddingVertical: TYPOGRAPHY.spacing.sm,
+    paddingHorizontal: TYPOGRAPHY.spacing.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.textPrimaryMuted,
+    minHeight: 44, // Accessibility - minimum touch target
+  },
   retryText: {
     fontSize: TYPOGRAPHY.fontSize.body,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
     color: COLORS.textPrimary,
-    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   emptyContainer: {
     alignItems: 'center',

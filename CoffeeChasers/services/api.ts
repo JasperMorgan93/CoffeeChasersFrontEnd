@@ -3,20 +3,31 @@ import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 interface ApiResponse<T> {
     data: T;
     message?: string;
+    success: boolean;
 }
 
 interface ReviewHistoryResponse {
     reviewHistory: ReviewHistoryEntry[];
 }
 
+interface ApiError extends Error {
+    status?: number;
+    code?: string;
+}
+
 class ApiService {
-    private baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://api.coffeechasers.com';
+    private readonly baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://api.coffeechasers.com';
+    private readonly timeout = 10000; // 10 seconds
 
     private async makeRequest<T>(
         endpoint: string,
-        options: RequestInit = {}
+        options: RequestInit & { timeout?: number } = {}
     ): Promise<T> {
+        const { timeout = this.timeout, ...fetchOptions } = options;
         const url = `${this.baseURL}${endpoint}`;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         const defaultHeaders = {
             'Content-Type': 'application/json',
@@ -24,30 +35,83 @@ class ApiService {
             // 'Authorization': `Bearer ${await getAuthToken()}`,
         };
 
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers,
-            },
-        });
+        try {
+            const response = await fetch(url, {
+                ...fetchOptions,
+                signal: controller.signal,
+                headers: {
+                    ...defaultHeaders,
+                    ...fetchOptions.headers,
+                },
+            });
 
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => 'Unknown error');
+                const apiError = new Error(`API Error: ${response.status} - ${response.statusText}`) as ApiError;
+                apiError.status = response.status;
+                apiError.code = response.status.toString();
+
+                // Log detailed error for debugging
+                if (__DEV__) {
+                    console.error('API Request failed:', {
+                        url,
+                        status: response.status,
+                        statusText: response.statusText,
+                        body: errorText,
+                    });
+                }
+
+                throw apiError;
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            if (error instanceof TypeError && error.message.includes('fetch')) {
+                const networkError = new Error('Network error: Please check your internet connection') as ApiError;
+                networkError.code = 'NETWORK_ERROR';
+                throw networkError;
+            }
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                const timeoutError = new Error('Request timed out. Please try again.') as ApiError;
+                timeoutError.code = 'TIMEOUT';
+                throw timeoutError;
+            }
+
+            throw error;
         }
-
-        return response.json();
     }
 
-    async getUserReviewHistory(): Promise<ReviewHistoryEntry[]> {
-        const response = await this.makeRequest<ApiResponse<ReviewHistoryResponse>>('/user/review-history'); // WIP
-        return response.data.reviewHistory;
+    async getUserReviewHistory(signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
+        try {
+            const response = await this.makeRequest<ApiResponse<ReviewHistoryResponse>>(
+                '/user/review-history',
+                { signal }
+            );
+
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to fetch review history');
+            }
+
+            return response.data.reviewHistory;
+        } catch (error) {
+            // Re-throw with more specific error message for this endpoint
+            if (error instanceof Error) {
+                throw new Error(`Failed to load review history: ${error.message}`);
+            }
+            throw new Error('Failed to load review history: Unknown error occurred');
+        }
     }
 
     // Add other API methods as needed
-    // async createReview(review: CreateReviewRequest): Promise<ReviewHistoryEntry> { ... }
-    // async updateReview(id: string, review: UpdateReviewRequest): Promise<ReviewHistoryEntry> { ... }
-    // async deleteReview(id: string): Promise<void> { ... }
+    // async createReview(review: CreateReviewRequest, signal?: AbortSignal): Promise<ReviewHistoryEntry> { ... }
+    // async updateReview(id: string, review: UpdateReviewRequest, signal?: AbortSignal): Promise<ReviewHistoryEntry> { ... }
+    // async deleteReview(id: string, signal?: AbortSignal): Promise<void> { ... }
 }
 
 export const apiService = new ApiService();
