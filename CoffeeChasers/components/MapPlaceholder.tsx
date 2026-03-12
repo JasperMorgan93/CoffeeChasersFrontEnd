@@ -21,7 +21,7 @@ export function MapPlaceholder() {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#c9a898',
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     gap: TYPOGRAPHY.spacing.xs,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   sublabel: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimaryMuted,
   },

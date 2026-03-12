@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     left: TYPOGRAPHY.spacing.lg,
     right: TYPOGRAPHY.spacing.lg,
     alignItems: 'center',
-    backgroundColor: 'rgba(175, 136, 116, 0.9)',
+    backgroundColor: COLORS.overlay,
     borderRadius: 16,
     padding: TYPOGRAPHY.spacing.md,
     gap: TYPOGRAPHY.spacing.xs,
