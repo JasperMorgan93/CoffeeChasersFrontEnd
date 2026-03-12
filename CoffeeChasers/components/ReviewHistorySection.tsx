@@ -7,9 +7,9 @@ import { TYPOGRAPHY } from '../constants/typography';
 export type ReviewHistoryEntry = {
   id: string;
   cafeName: string;
-  reviewDate: string;
   rating: number;
-  notes: string;
+  coffeeType: string;
+  reviewDate: string;
 };
 
 type ReviewHistorySectionProps = {

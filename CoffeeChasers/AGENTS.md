@@ -112,6 +112,7 @@ Make small, focused, production-safe edits that preserve current architecture an
 ## Quality Bar
 
 A change is complete when it is:
+
 - Correct for the requested behavior
 - Consistent with existing code style
 - Token-driven for styling

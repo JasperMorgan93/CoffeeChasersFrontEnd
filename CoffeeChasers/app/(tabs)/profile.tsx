@@ -1,47 +1,45 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
-import { ReviewHistorySection, type ReviewHistoryEntry } from '../../components/ReviewHistorySection';
-
-const mockReviewHistory: ReviewHistoryEntry[] = [
-  {
-    id: 'review-1',
-    cafeName: 'Bean & Bloom',
-    reviewDate: 'Mar 10, 2026',
-    rating: 5,
-    notes: 'Great flat white and friendly staff.',
-  },
-  {
-    id: 'review-2',
-    cafeName: 'Roast House',
-    reviewDate: 'Mar 3, 2026',
-    rating: 4,
-    notes: 'Nice espresso, a little busy during lunch.',
-  },
-  {
-    id: 'review-3',
-    cafeName: 'Morning Drip',
-    reviewDate: 'Feb 25, 2026',
-    rating: 4,
-    notes: 'Good pour-over and cozy seating.',
-  },
-  {
-    id: 'review-4',
-    cafeName: 'Morning Drip',
-    reviewDate: 'Feb 25, 2026',
-    rating: 4,
-    notes: 'Good pour-over and cozy seating.',
-  },
-  {
-    id: 'review-5',
-    cafeName: 'Morning Drip',
-    reviewDate: 'Feb 25, 2026',
-    rating: 4,
-    notes: 'Good pour-over and cozy seating.',
-  },
-];
+import { ReviewHistorySection } from '../../components/ReviewHistorySection';
+import { useReviewHistory } from '../../hooks/useReviewHistory';
 
 export default function Profile() {
+  const { reviewHistory, isLoading, error, refetch } = useReviewHistory();
+
+  const renderReviewSection = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.textPrimary} />
+          <Text style={styles.loadingText}>Loading your reviews...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error: {error}</Text>
+          <Text style={styles.retryText} onPress={refetch}>
+            Tap to retry
+          </Text>
+        </View>
+      );
+    }
+
+    if (reviewHistory.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No reviews yet</Text>
+          <Text style={styles.emptySubtext}>Start exploring cafes to build your review history!</Text>
+        </View>
+      );
+    }
+
+    return <ReviewHistorySection entries={reviewHistory} />;
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View>
@@ -49,7 +47,7 @@ export default function Profile() {
         <Text style={styles.subtitle}>Your account details will appear here.</Text>
       </View>
 
-      <ReviewHistorySection entries={mockReviewHistory} />
+      {renderReviewSection()}
     </ScrollView>
   );
 }
@@ -73,5 +71,51 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.body,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimary,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: TYPOGRAPHY.spacing.xl,
+  },
+  loadingText: {
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    color: COLORS.textPrimary,
+    marginTop: TYPOGRAPHY.spacing.md,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: TYPOGRAPHY.spacing.xl,
+  },
+  errorText: {
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: TYPOGRAPHY.spacing.md,
+  },
+  retryText: {
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.textPrimary,
+    textDecorationLine: 'underline',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: TYPOGRAPHY.spacing.xl,
+  },
+  emptyText: {
+    fontSize: TYPOGRAPHY.fontSize.subtitle,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.textPrimary,
+    marginBottom: TYPOGRAPHY.spacing.xs,
+  },
+  emptySubtext: {
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    color: COLORS.textPrimary,
+    textAlign: 'center',
   },
 });
