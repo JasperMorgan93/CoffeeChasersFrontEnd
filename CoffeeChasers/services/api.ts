@@ -1,4 +1,6 @@
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
+import { MapFilters } from '../types/mapFilters';
+import { Cafe } from '../types/cafe';
 
 interface ApiResponse<T> {
     data: T;
@@ -8,6 +10,11 @@ interface ApiResponse<T> {
 
 interface ReviewHistoryResponse {
     reviewHistory: ReviewHistoryEntry[];
+}
+
+interface CafesResponse {
+    cafes: Cafe[];
+    total: number;
 }
 
 interface ApiError extends Error {
@@ -105,6 +112,40 @@ class ApiService {
                 throw new Error(`Failed to load review history: ${error.message}`);
             }
             throw new Error('Failed to load review history: Unknown error occurred');
+        }
+    }
+
+    async getFilteredCafes(filters: MapFilters, signal?: AbortSignal): Promise<Cafe[]> {
+        try {
+            // Build query parameters based on active filters
+            const queryParams = new URLSearchParams();
+
+            if (filters.favourites) {
+                queryParams.append('favourites', 'true');
+            }
+
+            if (filters.openNow) {
+                queryParams.append('openNow', 'true');
+            }
+
+            const endpoint = `/cafes${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+            const response = await this.makeRequest<ApiResponse<CafesResponse>>(
+                endpoint,
+                { signal }
+            );
+
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to fetch cafes');
+            }
+
+            return response.data.cafes;
+        } catch (error) {
+            // Re-throw with more specific error message for this endpoint
+            if (error instanceof Error) {
+                throw new Error(`Failed to load cafes: ${error.message}`);
+            }
+            throw new Error('Failed to load cafes: Unknown error occurred');
         }
     }
 
