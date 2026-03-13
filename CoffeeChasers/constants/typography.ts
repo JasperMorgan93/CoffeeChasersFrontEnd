@@ -18,4 +18,10 @@ export const TYPOGRAPHY = {
         lg: 20,
         xl: 24,
     },
+    border_radius: {
+        round_corner: 24,
+        card: 12,
+        button: 8,
+        input: 8,
+    },
 } as const;

@@ -21,11 +21,7 @@ export default function Profile() {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
-          <Pressable 
-            style={styles.retryButton} 
-            onPress={refetch}
-            disabled={isRefetching}
-          >
+          <Pressable style={styles.retryButton} onPress={refetch} disabled={isRefetching}>
             {isRefetching ? (
               <ActivityIndicator size="small" color={COLORS.textPrimary} />
             ) : (
@@ -40,7 +36,9 @@ export default function Profile() {
       return (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No reviews yet</Text>
-          <Text style={styles.emptySubtext}>Start exploring cafes to build your review history!</Text>
+          <Text style={styles.emptySubtext}>
+            Start exploring cafes to build your review history!
+          </Text>
         </View>
       );
     }

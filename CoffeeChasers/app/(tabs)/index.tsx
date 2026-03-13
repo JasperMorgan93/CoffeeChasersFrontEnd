@@ -10,7 +10,7 @@ import { TYPOGRAPHY } from '../../constants/typography';
 export default function Index() {
   const router = useRouter();
   const { filters, toggleFilter, clearAllFilters, hasActiveFilters } = useMapFilters();
-  
+
   // This will automatically refetch when filters change
   const { cafes, isLoading, error } = useCafes(filters);
 
@@ -18,20 +18,18 @@ export default function Index() {
     <View style={styles.container}>
       <MapPlaceholder />
       <View style={styles.filterOverlay}>
-        <MapFilterBar 
+        <MapFilterBar
           filters={filters}
           onToggleFilter={toggleFilter}
           onClearAll={clearAllFilters}
           hasActiveFilters={hasActiveFilters}
         />
       </View>
-      
+
       {/* Debug info to show filter status (remove when implementing real map) */}
       {__DEV__ && (
         <View style={styles.debugOverlay}>
-          <Text style={styles.debugText}>
-            Filters: {JSON.stringify(filters, null, 2)}
-          </Text>
+          <Text style={styles.debugText}>Filters: {JSON.stringify(filters, null, 2)}</Text>
           <Text style={styles.debugText}>
             Cafes loaded: {cafes.length} | Loading: {isLoading.toString()}
           </Text>
@@ -76,4 +74,3 @@ const styles = StyleSheet.create({
     color: '#ff4444',
   },
 });
-
