@@ -1,5 +1,13 @@
-import { useCallback } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { MapPlaceholder } from '../../components/MapPlaceholder';
 import { MapFilterBar } from '../../components/MapFilterBar';
@@ -8,6 +16,7 @@ import { useMapFilters } from '../../hooks/useMapFilters';
 import { useCafes } from '../../hooks/useCafes';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { Cafe } from '../../types/cafe';
 
 const DEV_CAFE_ID = 'dev-cafe-1';
 const DEV_CAFE_NAME = 'Dev Cafe';
@@ -19,6 +28,8 @@ const DEV_CAFE_OPENING_HOURS =
 
 export default function Index() {
   const router = useRouter();
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [overlayHeight, setOverlayHeight] = useState(0);
   const { filters, toggleFilter, clearAllFilters, hasActiveFilters } = useMapFilters();
 
   // This will automatically refetch when filters change
@@ -48,15 +59,95 @@ export default function Index() {
     });
   }, [router]);
 
+  const isListView = viewMode === 'list';
+  const toggleViewMode = useCallback(() => {
+    setViewMode((prev) => (prev === 'map' ? 'list' : 'map'));
+  }, []);
+
+  const handleOverlayLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHeight = event.nativeEvent.layout.height;
+    setOverlayHeight((prevHeight) => (prevHeight === nextHeight ? prevHeight : nextHeight));
+  }, []);
+
+  const listTopPadding =
+    overlayHeight > 0 ? overlayHeight + TYPOGRAPHY.spacing.sm : TYPOGRAPHY.spacing.xl * 5;
+
+  const renderCafeItem = useCallback(
+    ({ item }: { item: Cafe }) => (
+      <Pressable
+        onPress={() => handleCafeSelect(item.id)}
+        style={({ pressed }) => [styles.cafeCard, pressed && styles.cafeCardPressed]}
+      >
+        <View style={styles.cafeCardHeader}>
+          <Text style={styles.cafeName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.cafeRating}>{item.rating.toFixed(1)}</Text>
+        </View>
+        <Text style={styles.cafeAddress} numberOfLines={2}>
+          {item.address}
+        </Text>
+        <Text style={styles.cafeStatus}>{item.isOpen ? 'Open now' : 'Closed'}</Text>
+      </Pressable>
+    ),
+    [handleCafeSelect]
+  );
+
   return (
     <View style={styles.container}>
-      <MapPlaceholder onSelectCafe={handleCafeSelect} />
-      <View style={styles.filterOverlay}>
+      {isListView ? (
+        <FlatList
+          data={cafes}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCafeItem}
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingBottom: TYPOGRAPHY.spacing.xl,
+            },
+          ]}
+          ListEmptyComponent={
+            isLoading ? (
+              <View style={styles.listStateContainer}>
+                <ActivityIndicator size="small" color={COLORS.textPrimary} />
+                <Text style={styles.listStateText}>Loading cafes...</Text>
+              </View>
+            ) : (
+              <View style={styles.listStateContainer}>
+                <Text style={styles.listStateText}>No cafes found for these filters.</Text>
+              </View>
+            )
+          }
+          ListHeaderComponent={
+            <View style={styles.listHeaderContainer}>
+              <View style={{ height: listTopPadding }} />
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
+            </View>
+          }
+        />
+      ) : (
+        <MapPlaceholder onSelectCafe={handleCafeSelect} />
+      )}
+
+      <View style={styles.filterOverlay} onLayout={handleOverlayLayout}>
         <MapFilterBar
           filters={filters}
           onToggleFilter={toggleFilter}
           onClearAll={clearAllFilters}
           hasActiveFilters={hasActiveFilters}
+        />
+      </View>
+
+      <View style={styles.floatingToggleContainer}>
+        <AppButton
+          label={isListView ? 'Show map' : 'Show list'}
+          onPress={toggleViewMode}
+          style={styles.viewModeButton}
+          textStyle={styles.viewModeButtonText}
         />
       </View>
 
@@ -88,6 +179,85 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+  },
+  floatingToggleContainer: {
+    position: 'absolute',
+    right: TYPOGRAPHY.spacing.md,
+    bottom: TYPOGRAPHY.spacing.xl,
+    zIndex: 15,
+  },
+  viewModeButton: {
+    paddingVertical: TYPOGRAPHY.spacing.xs,
+    paddingHorizontal: TYPOGRAPHY.spacing.md,
+  },
+  viewModeButtonText: {
+    color: COLORS.background,
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+  },
+  listContent: {
+    paddingHorizontal: TYPOGRAPHY.spacing.md,
+    gap: TYPOGRAPHY.spacing.sm,
+  },
+  cafeCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: TYPOGRAPHY.border_radius.card,
+    padding: TYPOGRAPHY.spacing.md,
+    gap: TYPOGRAPHY.spacing.xs,
+  },
+  cafeCardPressed: {
+    opacity: 0.85,
+  },
+  cafeCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: TYPOGRAPHY.spacing.sm,
+  },
+  cafeName: {
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.textPrimary,
+  },
+  cafeRating: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
+    color: COLORS.textPrimary,
+  },
+  cafeAddress: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    color: COLORS.textPrimaryMuted,
+  },
+  cafeStatus: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.textPrimary,
+  },
+  listStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: TYPOGRAPHY.spacing.xl,
+    gap: TYPOGRAPHY.spacing.sm,
+  },
+  listStateText: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    color: COLORS.textPrimaryMuted,
+  },
+  listHeaderContainer: {
+    gap: TYPOGRAPHY.spacing.sm,
+  },
+  errorContainer: {
+    backgroundColor: COLORS.overlay,
+    borderRadius: TYPOGRAPHY.border_radius.card,
+    padding: TYPOGRAPHY.spacing.sm,
+  },
+  errorText: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.background,
   },
   debugOverlay: {
     position: 'absolute',
