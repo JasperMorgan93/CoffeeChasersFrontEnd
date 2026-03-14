@@ -3,12 +3,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { TYPOGRAPHY } from '../constants/typography';
 
+interface MapPlaceholderProps {
+  onSelectCafe?: (cafeId: string) => void;
+}
+
 /**
  * Temporary map placeholder — swap this component for a Mapbox MapView
  * when the integration is ready. Keep the same prop signature so the
  * parent (index.tsx) needs no changes.
  */
-export function MapPlaceholder() {
+export function MapPlaceholder({ onSelectCafe }: MapPlaceholderProps) {
+  void onSelectCafe;
+
   return (
     <View style={styles.container}>
       <Ionicons name="map-outline" size={64} color={COLORS.textPrimaryMuted} />

@@ -1,6 +1,6 @@
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 import { MapFilters } from '../types/mapFilters';
-import { Cafe } from '../types/cafe';
+import { Cafe, CafeDetails } from '../types/cafe';
 
 interface ApiResponse<T> {
   data: T;
@@ -17,10 +17,59 @@ interface CafesResponse {
   total: number;
 }
 
+interface CafeDetailsResponse {
+  cafe: CafeDetailsApi;
+}
+
+interface CafeDetailsApi {
+  id: string;
+  name?: string;
+  google_rating?: number | null;
+  googleRating?: number | null;
+  address?: string | null;
+  formatted_address?: string | null;
+  website?: string | null;
+  url?: string | null;
+  opening_hours?: string[] | { weekday_text?: string[] | null } | null;
+  openingHours?: string[] | null;
+}
+
 interface ApiError extends Error {
   status?: number;
   code?: string;
 }
+
+const parseOpeningHours = (source: CafeDetailsApi): string[] => {
+  if (Array.isArray(source.openingHours)) {
+    return source.openingHours.filter(Boolean);
+  }
+
+  if (Array.isArray(source.opening_hours)) {
+    return source.opening_hours.filter(Boolean);
+  }
+
+  const weekdayText = source.opening_hours?.weekday_text;
+  if (Array.isArray(weekdayText)) {
+    return weekdayText.filter(Boolean);
+  }
+
+  return [];
+};
+
+const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
+  const googleRating = source.googleRating ?? source.google_rating ?? null;
+  const address = source.address ?? source.formatted_address ?? null;
+  const website = source.website ?? source.url ?? null;
+
+  return {
+    id: source.id,
+    name: source.name ?? 'Cafe Details',
+    googleRating,
+    address,
+    website,
+    openingHours: parseOpeningHours(source),
+  };
+};
 
 class ApiService {
   private readonly baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://api.coffeechasers.com';
@@ -147,6 +196,31 @@ class ApiService {
         throw new Error(`Failed to load cafes: ${error.message}`);
       }
       throw new Error('Failed to load cafes: Unknown error occurred');
+    }
+  }
+
+  async getCafeDetails(cafeId: string, signal?: AbortSignal): Promise<CafeDetails> {
+    try {
+      const normalizedCafeId = cafeId.trim();
+      if (!normalizedCafeId) {
+        throw new Error('Cafe ID is required');
+      }
+
+      const endpoint = `/cafes/${encodeURIComponent(normalizedCafeId)}`;
+      const response = await this.makeRequest<ApiResponse<CafeDetailsResponse>>(endpoint, {
+        signal,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch cafe details');
+      }
+
+      return mapCafeDetails(response.data.cafe);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load cafe details: ${error.message}`);
+      }
+      throw new Error('Failed to load cafe details: Unknown error occurred');
     }
   }
 

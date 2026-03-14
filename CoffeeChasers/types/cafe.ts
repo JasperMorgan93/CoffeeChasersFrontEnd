@@ -12,6 +12,15 @@ export interface Cafe {
   };
 }
 
+export interface CafeDetails {
+  id: string;
+  name: string;
+  googleRating: number | null;
+  address: string | null;
+  website: string | null;
+  openingHours: string[];
+}
+
 export interface CafeFilters {
   favourites?: boolean;
   openNow?: boolean;

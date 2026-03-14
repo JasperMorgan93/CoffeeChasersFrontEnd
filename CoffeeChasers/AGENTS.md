@@ -7,6 +7,8 @@ Guidance for AI coding agents (including Copilot) working in this repository.
 - Framework: Expo + React Native + Expo Router (file-based routing)
 - Language: TypeScript
 - Navigation: Tabs inside `app/(tabs)/_layout.tsx`, root stack in `app/_layout.tsx`
+- Backend API: FastAPI
+- Database: Supabase (PostgreSQL)
 - Fonts: Inter via `@expo-google-fonts/inter`, loaded in `app/_layout.tsx`
 - Design tokens:
   - Colors: `constants/colors.ts`
@@ -148,6 +150,13 @@ Make small, focused, production-safe edits that preserve current architecture an
 - `MapPlaceholder` is intentionally temporary for future Mapbox integration.
 - When Mapbox is introduced, replace internals of `MapPlaceholder` first to minimize blast radius.
 - Keep public usage from `app/(tabs)/index.tsx` stable when possible.
+
+### 6) API/Data mapping conventions
+
+- FastAPI responses may use backend naming (e.g. `snake_case`) while the app uses TypeScript-friendly `camelCase` models.
+- Keep field-name mapping at the API boundary layer (`services/api.ts`), not in screens/components.
+- UI and hooks should consume app-domain models only (e.g. `Cafe`, `CafeDetails`).
+- For place details, fetch by identifier on demand from detail screens instead of loading full detail payloads in map/list endpoints.
 
 ## Agent Workflow Expectations
 
