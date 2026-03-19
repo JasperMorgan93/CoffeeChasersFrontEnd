@@ -19,7 +19,6 @@ export function MapFilterBar({
   onClearAll,
   hasActiveFilters,
 }: MapFilterBarProps) {
-  
   const getFilterActiveState = (filters: MapFilters, filterType: FilterType): boolean => {
     switch (filterType) {
       case 'favourites':

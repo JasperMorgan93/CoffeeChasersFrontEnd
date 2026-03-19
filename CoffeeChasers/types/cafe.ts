@@ -20,11 +20,3 @@ export interface CafeDetails {
   website: string | null;
   openingHours: string[];
 }
-
-export interface CafeFilters {
-  favourites?: boolean;
-  openNow?: boolean;
-  minRating?: number;
-  maxDistance?: number;
-  priceRange?: [number, number];
-}

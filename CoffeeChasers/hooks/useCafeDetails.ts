@@ -4,41 +4,32 @@ import { useAsyncData } from './useAsyncData';
 import { CafeDetails } from '../types/cafe';
 
 interface UseCafeDetailsResult {
-    cafeDetails: CafeDetails | undefined;
-    isLoading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
-    isRefetching: boolean;
+  cafeDetails: CafeDetails | undefined;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  isRefetching: boolean;
 }
 
-export function useCafeDetails(
-    cafeId?: string,
-    shouldFetch = true
-): UseCafeDetailsResult {
-    const normalizedCafeId = useMemo(() => cafeId?.trim() ?? '', [cafeId]);
-    const shouldAutoFetch = shouldFetch && normalizedCafeId.length > 0;
+export function useCafeDetails(cafeId?: string, shouldFetch = true): UseCafeDetailsResult {
+  const normalizedCafeId = useMemo(() => cafeId?.trim() ?? '', [cafeId]);
+  const shouldAutoFetch = shouldFetch && normalizedCafeId.length > 0;
 
-    const fetchCafeDetails = useMemo(
-        () => (signal?: AbortSignal) => apiService.getCafeDetails(normalizedCafeId, signal),
-        [normalizedCafeId]
-    );
+  const fetchCafeDetails = useMemo(
+    () => (signal?: AbortSignal) => apiService.getCafeDetails(normalizedCafeId, signal),
+    [normalizedCafeId]
+  );
 
-    const {
-        data,
-        isLoading,
-        error,
-        refetch,
-        isRefetching,
-    } = useAsyncData<CafeDetails>({
-        fetchFn: fetchCafeDetails,
-        autoFetch: shouldAutoFetch,
-    });
+  const { data, isLoading, error, refetch, isRefetching } = useAsyncData<CafeDetails>({
+    fetchFn: fetchCafeDetails,
+    autoFetch: shouldAutoFetch,
+  });
 
-    return {
-        cafeDetails: data,
-        isLoading,
-        error,
-        refetch,
-        isRefetching,
-    };
+  return {
+    cafeDetails: data,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  };
 }

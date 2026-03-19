@@ -62,12 +62,7 @@ const formatRating = (rating?: number | string | null) => {
   return DEFAULT_RATING;
 };
 
-function CollapsibleSection({
-  title,
-  isExpanded,
-  onToggle,
-  children,
-}: CollapsibleSectionProps) {
+function CollapsibleSection({ title, isExpanded, onToggle, children }: CollapsibleSectionProps) {
   return (
     <View style={styles.infoSection}>
       <Pressable onPress={onToggle} style={styles.sectionHeader}>
