@@ -1,6 +1,13 @@
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 import { MapFilters } from '../types/mapFilters';
 import { Cafe, CafeDetails } from '../types/cafe';
+import {
+  LoginCredentials,
+  ProfileUpdateRequest,
+  RegisterCredentials,
+  SupabaseSessionResponse,
+  UserProfile,
+} from '../types/auth';
 
 interface ApiResponse<T> {
   data: T;
@@ -76,6 +83,26 @@ const mapCafe = (source: CafeApi): Cafe => ({
   isOpen: source.is_open ?? false,
 });
 
+interface ReviewApi {
+  id: number;
+  user_id: number;
+  cafe_id: number;
+  rating: number;
+  coffee_type?: string | null;
+  created_at?: string | null;
+  cafe?: { name?: string | null } | null;
+}
+
+const mapReview = (source: ReviewApi): ReviewHistoryEntry => ({
+  id: String(source.id),
+  cafeName: source.cafe?.name ?? `Cafe #${source.cafe_id}`,
+  rating: source.rating,
+  coffeeType: source.coffee_type ?? undefined,
+  reviewDate: source.created_at
+    ? new Date(source.created_at).toLocaleDateString()
+    : 'Unknown date',
+});
+
 const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
   const googleRating = source.googleRating ?? source.google_rating ?? null;
   const address = source.address ?? source.formatted_address ?? null;
@@ -94,6 +121,11 @@ const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
 class ApiService {
   private readonly baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://api.coffeechasers.com';
   private readonly timeout = 10000; // 10 seconds
+  private token: string | null = null;
+
+  setToken(token: string | null): void {
+    this.token = token;
+  }
 
   private async makeRequest<T>(
     endpoint: string,
@@ -105,10 +137,9 @@ class ApiService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const defaultHeaders = {
+    const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      // Add auth token when available
-      // 'Authorization': `Bearer ${await getAuthToken()}`,
+      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
     };
 
     try {
@@ -167,9 +198,68 @@ class ApiService {
     }
   }
 
-  async getUserReviewHistory(_signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
-    // TODO: endpoint not yet implemented on the API — return empty until available
-    return [];
+  async login(credentials: LoginCredentials): Promise<SupabaseSessionResponse> {
+    try {
+      return await this.makeRequest<SupabaseSessionResponse>('/users/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Login failed: Please check your email and password and try again. (${error.message})`);
+      }
+      throw new Error('Login failed: Unknown error occurred');
+    }
+  }
+  async register(credentials: RegisterCredentials): Promise<SupabaseSessionResponse> {
+    try {
+      return await this.makeRequest<SupabaseSessionResponse>('/users/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Registration failed: ${error.message}`);
+      }
+      throw new Error('Registration failed: Unknown error occurred');
+    }
+  }
+  async getMyProfile(signal?: AbortSignal): Promise<UserProfile> {
+    try {
+      return await this.makeRequest<UserProfile>('/users/profiles/me', { signal });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load profile: ${error.message}`);
+      }
+      throw new Error('Failed to load profile: Unknown error occurred');
+    }
+  }
+
+  async updateMyProfile(data: ProfileUpdateRequest, signal?: AbortSignal): Promise<UserProfile> {
+    try {
+      return await this.makeRequest<UserProfile>('/users/profiles/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        signal,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to update profile: ${error.message}`);
+      }
+      throw new Error('Failed to update profile: Unknown error occurred');
+    }
+  }
+
+  async getUserReviewHistory(userId: number, signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
+    try {
+      const raw = await this.makeRequest<ReviewApi[]>(`/reviews/customer/${userId}`, { signal });
+      return raw.map(mapReview);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load review history: ${error.message}`);
+      }
+      throw new Error('Failed to load review history: Unknown error occurred');
+    }
   }
 
   async getFilteredCafes(filters: MapFilters, signal?: AbortSignal): Promise<Cafe[]> {

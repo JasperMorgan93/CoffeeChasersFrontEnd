@@ -3,9 +3,11 @@ import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { ReviewHistorySection } from '../../components/ReviewHistorySection';
 import { useReviewHistory } from '../../hooks/useReviewHistory';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Profile() {
   const { reviewHistory, isLoading, error, refetch, isRefetching } = useReviewHistory();
+  const { user, logout } = useAuth();
 
   const renderReviewSection = () => {
     if (isLoading) {
@@ -48,9 +50,17 @@ export default function Profile() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View>
-        <Text style={styles.title}>My Profile</Text>
-        <Text style={styles.subtitle}>Your account details will appear here.</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>{user?.name ?? 'My Profile'}</Text>
+          <Text style={styles.subtitle}>{user?.email ?? 'Your account details will appear here.'}</Text>
+        </View>
+        <Pressable
+          style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}
+          onPress={logout}
+        >
+          <Text style={styles.logoutText}>Sign out</Text>
+        </Pressable>
       </View>
 
       {renderReviewSection()}
@@ -66,6 +76,12 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: TYPOGRAPHY.spacing.lg,
     paddingBottom: TYPOGRAPHY.spacing.lg,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: TYPOGRAPHY.spacing.lg,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.title,
@@ -132,5 +148,24 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimary,
     textAlign: 'center',
+  },
+  logoutButton: {
+    paddingVertical: TYPOGRAPHY.spacing.xs,
+    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.textPrimaryMuted,
+    minHeight: 36,
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+  },
+  logoutButtonPressed: {
+    opacity: 0.7,
+  },
+  logoutText: {
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
+    color: COLORS.textPrimary,
   },
 });

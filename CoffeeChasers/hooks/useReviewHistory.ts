@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 import { apiService } from '../services/api';
 import { useAsyncData } from './useAsyncData';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UseReviewHistoryResult {
   reviewHistory: ReviewHistoryEntry[];
@@ -16,10 +17,16 @@ interface UseReviewHistoryResult {
  * Uses the generic useAsyncData hook and only contains business logic specific to reviews.
  */
 export function useReviewHistory(): UseReviewHistoryResult {
-  // Define the fetch function specific to review history
+  const { user } = useAuth();
+  const userId = user?.id;
+
   const fetchReviewHistory = useMemo(
-    () => (signal?: AbortSignal) => apiService.getUserReviewHistory(signal),
-    []
+    () =>
+      (signal?: AbortSignal) => {
+        if (userId === undefined) return Promise.resolve<ReviewHistoryEntry[]>([]);
+        return apiService.getUserReviewHistory(userId, signal);
+      },
+    [userId]
   );
 
   const {
