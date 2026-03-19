@@ -1,5 +1,5 @@
 export interface User {
-    id: string;
+    id: number; // integer profile ID — used with /reviews/customer/{user_id}
     email: string;
     name: string;
 }
@@ -15,7 +15,21 @@ export interface RegisterCredentials {
     password: string;
 }
 
-export interface AuthTokenResponse {
-    token: string;
-    user: User;
+// Raw Supabase session shape returned by POST /users/auth/login and POST /users/auth/signup
+export interface SupabaseSessionResponse {
+    access_token: string;
+    token_type: string;
+    expires_in?: number;
+    refresh_token?: string;
+}
+
+// Shape returned by GET /users/profiles/me and PUT /users/profiles/me
+export interface UserProfile {
+    id: number;
+    name: string | null;
+    email?: string | null;
+}
+
+export interface ProfileUpdateRequest {
+    name: string | null;
 }

@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { apiService } from '../services/api';
-import { LoginCredentials, RegisterCredentials, User } from '../types/auth';
+import { LoginCredentials, RegisterCredentials, User, UserProfile } from '../types/auth';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -14,6 +14,7 @@ interface AuthContextValue {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
   devBypass?: () => void;
 }
 
@@ -51,25 +52,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadSession();
   }, []);
 
-  const persistSession = useCallback(async (response: { token: string; user: User }) => {
+  const persistSession = useCallback(async (token: string, profile: UserProfile) => {
+    const user: User = {
+      id: profile.id,
+      email: profile.email ?? '',
+      name: profile.name ?? '',
+    };
     await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEY, response.token),
-      SecureStore.setItemAsync(USER_KEY, JSON.stringify(response.user)),
+      SecureStore.setItemAsync(TOKEN_KEY, token),
+      SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
     ]);
-    apiService.setToken(response.token);
-    setToken(response.token);
-    setUser(response.user);
+    apiService.setToken(token);
+    setToken(token);
+    setUser(user);
   }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
-    const response = await apiService.login(credentials);
-    await persistSession(response);
+    const session = await apiService.login(credentials);
+    apiService.setToken(session.access_token);
+    const profile = await apiService.getMyProfile();
+    await persistSession(session.access_token, profile);
   }, [persistSession]);
 
   const register = useCallback(async (credentials: RegisterCredentials) => {
-    const response = await apiService.register(credentials);
-    await persistSession(response);
+    const session = await apiService.register(credentials);
+    apiService.setToken(session.access_token);
+    const profile = await apiService.getMyProfile();
+    await persistSession(session.access_token, profile);
   }, [persistSession]);
+
+  const updateProfile = useCallback(async (name: string) => {
+    const profile = await apiService.updateMyProfile({ name });
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated: User = { ...prev, name: profile.name ?? prev.name };
+      SecureStore.setItemAsync(USER_KEY, JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
+  }, []);
 
   const logout = useCallback(async () => {
     await Promise.all([
@@ -85,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const devBypass = __DEV__
     ? () => {
         const mockToken = 'dev-bypass-token';
-        const mockUser: User = { id: 'dev-user', email: 'dev@local', name: 'Dev User' };
+        const mockUser: User = { id: 0, email: 'dev@local', name: 'Dev User' };
         apiService.setToken(mockToken);
         setToken(mockToken);
         setUser(mockUser);
@@ -102,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
+        updateProfile,
         devBypass,
       }}
     >

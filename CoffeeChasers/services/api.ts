@@ -1,7 +1,13 @@
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 import { MapFilters } from '../types/mapFilters';
 import { Cafe, CafeDetails } from '../types/cafe';
-import { AuthTokenResponse, LoginCredentials, RegisterCredentials } from '../types/auth';
+import {
+  LoginCredentials,
+  ProfileUpdateRequest,
+  RegisterCredentials,
+  SupabaseSessionResponse,
+  UserProfile,
+} from '../types/auth';
 
 interface ApiResponse<T> {
   data: T;
@@ -75,6 +81,26 @@ const mapCafe = (source: CafeApi): Cafe => ({
   rating: source.rating ?? 0,
   isFavourite: source.is_favourite ?? false,
   isOpen: source.is_open ?? false,
+});
+
+interface ReviewApi {
+  id: number;
+  user_id: number;
+  cafe_id: number;
+  rating: number;
+  coffee_type?: string | null;
+  created_at?: string | null;
+  cafe?: { name?: string | null } | null;
+}
+
+const mapReview = (source: ReviewApi): ReviewHistoryEntry => ({
+  id: String(source.id),
+  cafeName: source.cafe?.name ?? `Cafe #${source.cafe_id}`,
+  rating: source.rating,
+  coffeeType: source.coffee_type ?? undefined,
+  reviewDate: source.created_at
+    ? new Date(source.created_at).toLocaleDateString()
+    : 'Unknown date',
 });
 
 const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
@@ -172,9 +198,9 @@ class ApiService {
     }
   }
 
-  async login(credentials: LoginCredentials): Promise<AuthTokenResponse> {
+  async login(credentials: LoginCredentials): Promise<SupabaseSessionResponse> {
     try {
-      return await this.makeRequest<AuthTokenResponse>('/auth/login', {
+      return await this.makeRequest<SupabaseSessionResponse>('/users/auth/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
@@ -185,9 +211,9 @@ class ApiService {
       throw new Error('Login failed: Unknown error occurred');
     }
   }
-  async register(credentials: RegisterCredentials): Promise<AuthTokenResponse> {
+  async register(credentials: RegisterCredentials): Promise<SupabaseSessionResponse> {
     try {
-      return await this.makeRequest<AuthTokenResponse>('/auth/register', {
+      return await this.makeRequest<SupabaseSessionResponse>('/users/auth/signup', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
@@ -198,9 +224,42 @@ class ApiService {
       throw new Error('Registration failed: Unknown error occurred');
     }
   }
-  async getUserReviewHistory(_signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
-    // TODO: endpoint not yet implemented on the API — return empty until available
-    return [];
+  async getMyProfile(signal?: AbortSignal): Promise<UserProfile> {
+    try {
+      return await this.makeRequest<UserProfile>('/users/profiles/me', { signal });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load profile: ${error.message}`);
+      }
+      throw new Error('Failed to load profile: Unknown error occurred');
+    }
+  }
+
+  async updateMyProfile(data: ProfileUpdateRequest, signal?: AbortSignal): Promise<UserProfile> {
+    try {
+      return await this.makeRequest<UserProfile>('/users/profiles/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        signal,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to update profile: ${error.message}`);
+      }
+      throw new Error('Failed to update profile: Unknown error occurred');
+    }
+  }
+
+  async getUserReviewHistory(userId: number, signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
+    try {
+      const raw = await this.makeRequest<ReviewApi[]>(`/reviews/customer/${userId}`, { signal });
+      return raw.map(mapReview);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load review history: ${error.message}`);
+      }
+      throw new Error('Failed to load review history: Unknown error occurred');
+    }
   }
 
   async getFilteredCafes(filters: MapFilters, signal?: AbortSignal): Promise<Cafe[]> {
