@@ -1,6 +1,7 @@
 import { ReviewHistoryEntry } from '../components/ReviewHistorySection';
 import { MapFilters } from '../types/mapFilters';
 import { Cafe, CafeDetails } from '../types/cafe';
+import { AuthTokenResponse, LoginCredentials, RegisterCredentials } from '../types/auth';
 
 interface ApiResponse<T> {
   data: T;
@@ -94,6 +95,11 @@ const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
 class ApiService {
   private readonly baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://api.coffeechasers.com';
   private readonly timeout = 10000; // 10 seconds
+  private token: string | null = null;
+
+  setToken(token: string | null): void {
+    this.token = token;
+  }
 
   private async makeRequest<T>(
     endpoint: string,
@@ -105,10 +111,9 @@ class ApiService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const defaultHeaders = {
+    const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      // Add auth token when available
-      // 'Authorization': `Bearer ${await getAuthToken()}`,
+      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
     };
 
     try {
@@ -167,6 +172,32 @@ class ApiService {
     }
   }
 
+  async login(credentials: LoginCredentials): Promise<AuthTokenResponse> {
+    try {
+      return await this.makeRequest<AuthTokenResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Login failed: Please check your email and password and try again. (${error.message})`);
+      }
+      throw new Error('Login failed: Unknown error occurred');
+    }
+  }
+  async register(credentials: RegisterCredentials): Promise<AuthTokenResponse> {
+    try {
+      return await this.makeRequest<AuthTokenResponse>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Registration failed: ${error.message}`);
+      }
+      throw new Error('Registration failed: Unknown error occurred');
+    }
+  }
   async getUserReviewHistory(_signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
     // TODO: endpoint not yet implemented on the API — return empty until available
     return [];
