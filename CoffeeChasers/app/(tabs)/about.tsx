@@ -38,6 +38,5 @@ const styles = StyleSheet.create({
   button: {
     marginTop: TYPOGRAPHY.spacing.md,
     borderRadius: TYPOGRAPHY.border_radius.round_corner,
-
   },
 });
