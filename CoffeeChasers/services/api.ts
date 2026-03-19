@@ -12,9 +12,18 @@ interface ReviewHistoryResponse {
   reviewHistory: ReviewHistoryEntry[];
 }
 
-interface CafesResponse {
-  cafes: Cafe[];
-  total: number;
+// Shape returned by the API for each cafe in GET /cafes
+interface CafeApi {
+  id: number | string;
+  name: string;
+  lat: number;
+  long: number;
+  google_place_id?: string | null;
+  address?: string | null;
+  rating?: number | null;
+  is_favourite?: boolean | null;
+  is_open?: boolean | null;
+  opening_hours?: unknown;
 }
 
 interface CafeDetailsResponse {
@@ -55,6 +64,17 @@ const parseOpeningHours = (source: CafeDetailsApi): string[] => {
 
   return [];
 };
+
+const mapCafe = (source: CafeApi): Cafe => ({
+  id: String(source.id),
+  name: source.name,
+  address: source.address ?? '',
+  latitude: source.lat,
+  longitude: source.long,
+  rating: source.rating ?? 0,
+  isFavourite: source.is_favourite ?? false,
+  isOpen: source.is_open ?? false,
+});
 
 const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
   const googleRating = source.googleRating ?? source.google_rating ?? null;
@@ -147,25 +167,9 @@ class ApiService {
     }
   }
 
-  async getUserReviewHistory(signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
-    try {
-      const response = await this.makeRequest<ApiResponse<ReviewHistoryResponse>>(
-        '/user/review-history',
-        { signal }
-      );
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch review history');
-      }
-
-      return response.data.reviewHistory;
-    } catch (error) {
-      // Re-throw with more specific error message for this endpoint
-      if (error instanceof Error) {
-        throw new Error(`Failed to load review history: ${error.message}`);
-      }
-      throw new Error('Failed to load review history: Unknown error occurred');
-    }
+  async getUserReviewHistory(_signal?: AbortSignal): Promise<ReviewHistoryEntry[]> {
+    // TODO: endpoint not yet implemented on the API — return empty until available
+    return [];
   }
 
   async getFilteredCafes(filters: MapFilters, signal?: AbortSignal): Promise<Cafe[]> {
@@ -183,13 +187,10 @@ class ApiService {
 
       const endpoint = `/cafes${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-      const response = await this.makeRequest<ApiResponse<CafesResponse>>(endpoint, { signal });
+      // API returns a raw array of cafes (not wrapped in { success, data })
+      const raw = await this.makeRequest<CafeApi[]>(endpoint, { signal });
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch cafes');
-      }
-
-      return response.data.cafes;
+      return raw.map(mapCafe);
     } catch (error) {
       // Re-throw with more specific error message for this endpoint
       if (error instanceof Error) {
@@ -207,15 +208,10 @@ class ApiService {
       }
 
       const endpoint = `/cafes/${encodeURIComponent(normalizedCafeId)}`;
-      const response = await this.makeRequest<ApiResponse<CafeDetailsResponse>>(endpoint, {
-        signal,
-      });
+      // API returns a single CafeDetailsApi object directly
+      const raw = await this.makeRequest<CafeDetailsApi>(endpoint, { signal });
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch cafe details');
-      }
-
-      return mapCafeDetails(response.data.cafe);
+      return mapCafeDetails(raw);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Failed to load cafe details: ${error.message}`);
