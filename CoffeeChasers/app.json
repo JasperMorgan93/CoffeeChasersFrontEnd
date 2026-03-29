@@ -41,6 +41,12 @@
       ],
       "expo-font",
       "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CoffeeChasers uses your location to center the map around you."
+        }
+      ],
       "@rnmapbox/maps"
     ],
     "experiments": {

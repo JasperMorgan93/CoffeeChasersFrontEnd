@@ -84,6 +84,8 @@ export function useAsyncData<T>(options: UseAsyncDataOptions<T>): UseAsyncDataRe
   }, [executeFetch]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (autoFetch) {
       executeFetch();
     }

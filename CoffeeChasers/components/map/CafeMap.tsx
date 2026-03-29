@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
@@ -13,14 +14,72 @@ interface CafeMapProps {
   isLoading: boolean;
   error: string | null;
   onSelectCafe?: (cafeId: string) => void;
+  onSearchArea?: () => void;
+  isSearchingArea?: boolean;
 }
 
-export function CafeMap({ cafes, isLoading, error, onSelectCafe }: CafeMapProps) {
+export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, isSearchingArea }: CafeMapProps) {
   const { centerCoordinate, cafesWithCoordinates } = useCafeMapData(cafes);
+  const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
+  const [showSearchButton, setShowSearchButton] = useState(false);
 
   useEffect(() => {
     initializeMapbox();
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadUserCoordinate = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== Location.PermissionStatus.GRANTED) {
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        const { longitude, latitude } = location.coords;
+        if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+          setUserCoordinate([longitude, latitude]);
+        }
+      } catch (locationError) {
+        console.warn('Unable to read current user location.', locationError);
+      }
+    };
+
+    loadUserCoordinate();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const mapCenterCoordinate = useMemo(
+    () => userCoordinate ?? centerCoordinate,
+    [centerCoordinate, userCoordinate]
+  );
+
+  const handleCameraChanged = useCallback(() => {
+    if (!isLoading) {
+      setShowSearchButton(true);
+    }
+  }, [isLoading]);
+
+  const handleSearchArea = useCallback(() => {
+    setShowSearchButton(false);
+    onSearchArea?.();
+  }, [onSearchArea]);
 
   if (Platform.OS === 'web') {
     return (
@@ -42,8 +101,8 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe }: CafeMapProps)
 
   return (
     <View style={styles.container}>
-      <Mapbox.MapView style={styles.map} styleURL={Mapbox.StyleURL.Street}>
-        <Mapbox.Camera zoomLevel={12} centerCoordinate={centerCoordinate} animationMode="flyTo" />
+      <Mapbox.MapView style={styles.map} styleURL={Mapbox.StyleURL.Street} onCameraChanged={handleCameraChanged}>
+        <Mapbox.Camera zoomLevel={12} centerCoordinate={mapCenterCoordinate} animationMode="flyTo" />
 
         {cafesWithCoordinates.map((cafe) => (
           <Mapbox.PointAnnotation
@@ -52,13 +111,29 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe }: CafeMapProps)
             coordinate={[cafe.longitude, cafe.latitude]}
             onSelected={() => onSelectCafe?.(cafe.id)}
           >
-            <Pressable onPress={() => onSelectCafe?.(cafe.id)} style={styles.markerContainer}>
+            <View style={styles.markerContainer}>
               <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
-            </Pressable>
+            </View>
             <Mapbox.Callout title={cafe.name} />
           </Mapbox.PointAnnotation>
         ))}
       </Mapbox.MapView>
+
+      {showSearchButton && !isLoading ? (
+        <View style={styles.searchButtonContainer}>
+          <Pressable
+            style={[styles.searchButton, isSearchingArea && styles.searchButtonDisabled]}
+            onPress={handleSearchArea}
+            disabled={isSearchingArea}
+          >
+            {isSearchingArea ? (
+              <ActivityIndicator size="small" color={COLORS.background} />
+            ) : (
+              <Text style={styles.searchButtonText}>Search this area</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
 
       {isLoading ? (
         <View style={styles.loadingOverlay}>
@@ -110,6 +185,29 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.text,
     color: COLORS.textPrimary,
     fontFamily: TYPOGRAPHY.fontFamily.bold,
+  },
+  searchButtonContainer: {
+    position: 'absolute',
+    top: TYPOGRAPHY.spacing.xl * 4,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  searchButton: {
+    backgroundColor: COLORS.textPrimary,
+    borderRadius: TYPOGRAPHY.border_radius.round_corner,
+    paddingVertical: TYPOGRAPHY.spacing.sm,
+    paddingHorizontal: TYPOGRAPHY.spacing.lg,
+    minWidth: 56,
+    alignItems: 'center',
+  },
+  searchButtonDisabled: {
+    opacity: 0.6,
+  },
+  searchButtonText: {
+    color: COLORS.background,
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
   },
   loadingOverlay: {
     position: 'absolute',
