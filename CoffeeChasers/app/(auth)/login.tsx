@@ -95,7 +95,9 @@ export default function LoginScreen() {
             onPress={() => router.push('/(auth)/register')}
             disabled={isSubmitting}
           >
-            <Text style={styles.linkText}>Don't have an account? <Text style={styles.linkTextBold}>Create one</Text></Text>
+            <Text style={styles.linkText}>
+              Don't have an account? <Text style={styles.linkTextBold}>Create one</Text>
+            </Text>
           </Pressable>
         </View>
 

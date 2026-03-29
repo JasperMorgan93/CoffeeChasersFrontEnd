@@ -21,11 +21,10 @@ export function useReviewHistory(): UseReviewHistoryResult {
   const userId = user?.id;
 
   const fetchReviewHistory = useMemo(
-    () =>
-      (signal?: AbortSignal) => {
-        if (userId === undefined) return Promise.resolve<ReviewHistoryEntry[]>([]);
-        return apiService.getUserReviewHistory(userId, signal);
-      },
+    () => (signal?: AbortSignal) => {
+      if (userId === undefined) return Promise.resolve<ReviewHistoryEntry[]>([]);
+      return apiService.getUserReviewHistory(userId, signal);
+    },
     [userId]
   );
 

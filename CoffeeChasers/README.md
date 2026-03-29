@@ -10,12 +10,12 @@ Mapbox uses native modules, so testing it is different from running Expo Go.
 2. Install Android Studio.
 3. Ensure Android SDK and platform tools are installed.
 4. Ensure these env vars are available in your shell/system:
-	- `JAVA_HOME`
-	- `ANDROID_HOME`
-	- `ANDROID_SDK_ROOT`
+   - `JAVA_HOME`
+   - `ANDROID_HOME`
+   - `ANDROID_SDK_ROOT`
 5. In your local env file, set:
-	- `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` (public runtime token)
-	- `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` (private build-time token)
+   - `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` (public runtime token)
+   - `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` (private build-time token)
 
 ### First native install on a physical Android device
 

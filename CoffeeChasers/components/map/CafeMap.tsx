@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import * as Location from 'expo-location';
@@ -18,8 +18,16 @@ interface CafeMapProps {
   isSearchingArea?: boolean;
 }
 
-export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, isSearchingArea }: CafeMapProps) {
+export function CafeMap({
+  cafes,
+  isLoading,
+  error,
+  onSelectCafe,
+  onSearchArea,
+  isSearchingArea,
+}: CafeMapProps) {
   const { centerCoordinate, cafesWithCoordinates } = useCafeMapData(cafes);
+  const cameraRef = useRef<Mapbox.Camera>(null);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
   const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
@@ -86,6 +94,19 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
     setSelectedCafeId(null);
   }, []);
 
+  const handleRecenterToUser = useCallback(() => {
+    if (!userCoordinate || !cameraRef.current) {
+      return;
+    }
+
+    cameraRef.current.setCamera({
+      centerCoordinate: userCoordinate,
+      zoomLevel: 13,
+      animationMode: 'flyTo',
+      animationDuration: 700,
+    });
+  }, [userCoordinate]);
+
   if (Platform.OS === 'web') {
     return (
       <MapFallback
@@ -112,7 +133,12 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
         onCameraChanged={handleCameraChanged}
         onPress={handleMapPress}
       >
-        <Mapbox.Camera zoomLevel={12} centerCoordinate={mapCenterCoordinate} animationMode="flyTo" />
+        <Mapbox.Camera
+          ref={cameraRef}
+          zoomLevel={12}
+          centerCoordinate={mapCenterCoordinate}
+          animationMode="flyTo"
+        />
 
         {cafesWithCoordinates.map((cafe) => (
           <Mapbox.PointAnnotation
@@ -129,20 +155,22 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
                 return cafe.id;
               });
             }}
-            onDeselected={() => setSelectedCafeId((currentId) => (currentId === cafe.id ? null : currentId))}
+            onDeselected={() =>
+              setSelectedCafeId((currentId) => (currentId === cafe.id ? null : currentId))
+            }
           >
-            <View style={styles.markerContainer}>
-              <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
-            </View>
-            <View
-              style={[
-                styles.selectedCafeLabel,
-                selectedCafeId === cafe.id ? styles.selectedCafeLabelVisible : styles.selectedCafeLabelHidden,
-              ]}
-            >
-              <Text numberOfLines={1} style={styles.selectedCafeLabelText}>
-                {cafe.name}
-              </Text>
+            <View style={styles.annotationContainer}>
+              {selectedCafeId === cafe.id ? (
+                <View style={styles.selectedCafeLabel}>
+                  <Text numberOfLines={2} style={styles.selectedCafeLabelText}>
+                    {cafe.name}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View style={styles.markerContainer}>
+                <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
+              </View>
             </View>
           </Mapbox.PointAnnotation>
         ))}
@@ -163,6 +191,16 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
           </Pressable>
         </View>
       ) : null}
+
+      <View style={styles.recenterButtonContainer}>
+        <Pressable
+          style={[styles.recenterButton, !userCoordinate && styles.recenterButtonDisabled]}
+          onPress={handleRecenterToUser}
+          disabled={!userCoordinate}
+        >
+          <Ionicons name="locate" size={18} color={COLORS.background} />
+        </Pressable>
+      </View>
 
       {isLoading ? (
         <View style={styles.loadingOverlay}>
@@ -202,6 +240,9 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  annotationContainer: {
+    alignItems: 'center',
+  },
   markerContainer: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -216,11 +257,9 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.bold,
   },
   selectedCafeLabel: {
-    position: 'absolute',
-    bottom: '100%',
     marginBottom: TYPOGRAPHY.spacing.xs,
-    alignSelf: 'center',
-    maxWidth: 180,
+    maxWidth: 220,
+    minWidth: 96,
     borderRadius: TYPOGRAPHY.border_radius.card,
     paddingVertical: TYPOGRAPHY.spacing.xs,
     paddingHorizontal: TYPOGRAPHY.spacing.sm,
@@ -228,16 +267,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.textPrimary,
   },
-  selectedCafeLabelVisible: {
-    opacity: 1,
-  },
-  selectedCafeLabelHidden: {
-    opacity: 0,
-  },
   selectedCafeLabelText: {
     color: COLORS.textPrimary,
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
+    textAlign: 'center',
   },
   searchButtonContainer: {
     position: 'absolute',
@@ -261,6 +295,26 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
+  },
+  recenterButtonContainer: {
+    position: 'absolute',
+    right: TYPOGRAPHY.spacing.md,
+    top: TYPOGRAPHY.spacing.xl * 8,
+    zIndex: 25,
+    elevation: 6,
+  },
+  recenterButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.textPrimary,
+    borderWidth: 1,
+    borderColor: COLORS.background,
+  },
+  recenterButtonDisabled: {
+    opacity: 0.45,
   },
   loadingOverlay: {
     position: 'absolute',

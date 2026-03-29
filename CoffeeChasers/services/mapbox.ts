@@ -7,10 +7,10 @@ let hasInitializedMapbox = false;
 export const hasMapboxAccessToken = MAPBOX_ACCESS_TOKEN.length > 0;
 
 export function initializeMapbox(): void {
-    if (hasInitializedMapbox || !hasMapboxAccessToken) {
-        return;
-    }
+  if (hasInitializedMapbox || !hasMapboxAccessToken) {
+    return;
+  }
 
-    Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
-    hasInitializedMapbox = true;
+  Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+  hasInitializedMapbox = true;
 }
