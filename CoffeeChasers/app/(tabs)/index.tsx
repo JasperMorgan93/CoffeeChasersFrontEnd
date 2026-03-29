@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useLayoutEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,9 +9,9 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MapPlaceholder } from '../../components/MapPlaceholder';
+import { useNavigation } from '@react-navigation/native';
+import { CafeMap } from '../../components/map/CafeMap';
 import { MapFilterBar } from '../../components/MapFilterBar';
-import { AppButton } from '../../components/AppButton';
 import { useMapFilters } from '../../hooks/useMapFilters';
 import { useCafes } from '../../hooks/useCafes';
 import { COLORS } from '../../constants/colors';
@@ -20,12 +20,12 @@ import { Cafe } from '../../types/cafe';
 
 export default function Index() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [overlayHeight, setOverlayHeight] = useState(0);
   const { filters, toggleFilter, clearAllFilters, hasActiveFilters } = useMapFilters();
 
-  // This will automatically refetch when filters change
-  const { cafes, isLoading, error } = useCafes(filters);
+  const { cafes, isLoading, error, refetch, isRefetching } = useCafes(filters);
 
   const handleCafeSelect = useCallback(
     (cafeId: string) => {
@@ -38,9 +38,33 @@ export default function Index() {
   );
 
   const isListView = viewMode === 'list';
-  const toggleViewMode = useCallback(() => {
-    setViewMode((prev) => (prev === 'map' ? 'list' : 'map'));
-  }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerSwitchContainer}>
+          <View
+            style={[
+              styles.headerSwitchThumb,
+              isListView ? styles.headerSwitchThumbList : styles.headerSwitchThumbMap,
+            ]}
+          />
+
+          <Pressable style={styles.headerSwitchSegment} onPress={() => setViewMode('map')}>
+            <Text style={[styles.headerSwitchText, !isListView && styles.headerSwitchTextActive]}>
+              Map
+            </Text>
+          </Pressable>
+
+          <Pressable style={styles.headerSwitchSegment} onPress={() => setViewMode('list')}>
+            <Text style={[styles.headerSwitchText, isListView && styles.headerSwitchTextActive]}>
+              List
+            </Text>
+          </Pressable>
+        </View>
+      ),
+    });
+  }, [isListView, navigation]);
 
   const handleOverlayLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHeight = event.nativeEvent.layout.height;
@@ -108,7 +132,14 @@ export default function Index() {
           }
         />
       ) : (
-        <MapPlaceholder onSelectCafe={handleCafeSelect} />
+        <CafeMap
+          cafes={cafes}
+          isLoading={isLoading}
+          error={error}
+          onSelectCafe={handleCafeSelect}
+          onSearchArea={refetch}
+          isSearchingArea={isRefetching}
+        />
       )}
 
       <View style={styles.filterOverlay} onLayout={handleOverlayLayout}>
@@ -119,16 +150,6 @@ export default function Index() {
           hasActiveFilters={hasActiveFilters}
         />
       </View>
-
-      <View style={styles.floatingToggleContainer}>
-        <AppButton
-          label={isListView ? 'Show map' : 'Show list'}
-          onPress={toggleViewMode}
-          style={styles.viewModeButton}
-          textStyle={styles.viewModeButtonText}
-        />
-      </View>
-
     </View>
   );
 }
@@ -145,20 +166,43 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
   },
-  floatingToggleContainer: {
+  headerSwitchContainer: {
+    width: 112,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: COLORS.textPrimary,
+    backgroundColor: COLORS.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  headerSwitchThumb: {
     position: 'absolute',
-    right: TYPOGRAPHY.spacing.md,
-    bottom: TYPOGRAPHY.spacing.xl,
-    zIndex: 15,
+    top: 1,
+    bottom: 1,
+    width: 54,
+    borderRadius: 16,
+    backgroundColor: COLORS.textPrimary,
   },
-  viewModeButton: {
-    paddingVertical: TYPOGRAPHY.spacing.xs,
-    paddingHorizontal: TYPOGRAPHY.spacing.md,
+  headerSwitchThumbMap: {
+    left: 1,
   },
-  viewModeButtonText: {
-    color: COLORS.background,
+  headerSwitchThumbList: {
+    right: 1,
+  },
+  headerSwitchSegment: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerSwitchText: {
+    color: COLORS.textPrimary,
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
+  },
+  headerSwitchTextActive: {
+    color: COLORS.background,
   },
   listContent: {
     paddingHorizontal: TYPOGRAPHY.spacing.md,

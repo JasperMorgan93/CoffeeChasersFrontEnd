@@ -53,7 +53,9 @@ export default function Profile() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>{user?.name ?? 'My Profile'}</Text>
-          <Text style={styles.subtitle}>{user?.email ?? 'Your account details will appear here.'}</Text>
+          <Text style={styles.subtitle}>
+            {user?.email ?? 'Your account details will appear here.'}
+          </Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}

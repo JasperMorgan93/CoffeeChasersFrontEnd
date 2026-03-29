@@ -98,9 +98,7 @@ const mapReview = (source: ReviewApi): ReviewHistoryEntry => ({
   cafeName: source.cafe?.name ?? `Cafe #${source.cafe_id}`,
   rating: source.rating,
   coffeeType: source.coffee_type ?? undefined,
-  reviewDate: source.created_at
-    ? new Date(source.created_at).toLocaleDateString()
-    : 'Unknown date',
+  reviewDate: source.created_at ? new Date(source.created_at).toLocaleDateString() : 'Unknown date',
 });
 
 const mapCafeDetails = (source: CafeDetailsApi): CafeDetails => {
@@ -206,7 +204,9 @@ class ApiService {
       });
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Login failed: Please check your email and password and try again. (${error.message})`);
+        throw new Error(
+          `Login failed: Please check your email and password and try again. (${error.message})`
+        );
       }
       throw new Error('Login failed: Unknown error occurred');
     }

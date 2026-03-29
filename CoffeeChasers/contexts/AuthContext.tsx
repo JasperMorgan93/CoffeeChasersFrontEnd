@@ -67,19 +67,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(user);
   }, []);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const session = await apiService.login(credentials);
-    apiService.setToken(session.access_token);
-    const profile = await apiService.getMyProfile();
-    await persistSession(session.access_token, profile);
-  }, [persistSession]);
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      const session = await apiService.login(credentials);
+      apiService.setToken(session.access_token);
+      const profile = await apiService.getMyProfile();
+      await persistSession(session.access_token, profile);
+    },
+    [persistSession]
+  );
 
-  const register = useCallback(async (credentials: RegisterCredentials) => {
-    const session = await apiService.register(credentials);
-    apiService.setToken(session.access_token);
-    const profile = await apiService.getMyProfile();
-    await persistSession(session.access_token, profile);
-  }, [persistSession]);
+  const register = useCallback(
+    async (credentials: RegisterCredentials) => {
+      const session = await apiService.register(credentials);
+      apiService.setToken(session.access_token);
+      const profile = await apiService.getMyProfile();
+      await persistSession(session.access_token, profile);
+    },
+    [persistSession]
+  );
 
   const updateProfile = useCallback(async (name: string) => {
     const profile = await apiService.updateMyProfile({ name });

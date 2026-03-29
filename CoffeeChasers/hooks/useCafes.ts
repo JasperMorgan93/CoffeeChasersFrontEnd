@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useRef } from 'react';
 import { apiService } from '../services/api';
 import { useAsyncData } from './useAsyncData';
 import { MapFilters } from '../types/mapFilters';
@@ -17,10 +17,14 @@ interface UseCafesResult {
  * Uses the generic useAsyncData hook and only contains business logic specific to cafes.
  */
 export function useCafes(filters: MapFilters): UseCafesResult {
-  // Define the fetch function specific to filtered cafes
-  const fetchCafes = useMemo(
-    () => (signal?: AbortSignal) => apiService.getFilteredCafes(filters, signal),
-    [filters]
+  // Keep latest filters in a ref so fetchCafes is stable and never triggers
+  // an automatic re-fetch when filters change. Filters are applied at call time.
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+
+  const fetchCafes = useCallback(
+    (signal?: AbortSignal) => apiService.getFilteredCafes(filtersRef.current, signal),
+    []
   );
 
   // Use the generic async data hook with cafe-specific fetch function
