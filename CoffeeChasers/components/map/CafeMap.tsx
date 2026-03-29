@@ -22,6 +22,7 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
   const { centerCoordinate, cafesWithCoordinates } = useCafeMapData(cafes);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
+  const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
 
   useEffect(() => {
     initializeMapbox();
@@ -81,6 +82,10 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
     onSearchArea?.();
   }, [onSearchArea]);
 
+  const handleMapPress = useCallback(() => {
+    setSelectedCafeId(null);
+  }, []);
+
   if (Platform.OS === 'web') {
     return (
       <MapFallback
@@ -101,7 +106,12 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
 
   return (
     <View style={styles.container}>
-      <Mapbox.MapView style={styles.map} styleURL={Mapbox.StyleURL.Street} onCameraChanged={handleCameraChanged}>
+      <Mapbox.MapView
+        style={styles.map}
+        styleURL={Mapbox.StyleURL.Street}
+        onCameraChanged={handleCameraChanged}
+        onPress={handleMapPress}
+      >
         <Mapbox.Camera zoomLevel={12} centerCoordinate={mapCenterCoordinate} animationMode="flyTo" />
 
         {cafesWithCoordinates.map((cafe) => (
@@ -109,12 +119,31 @@ export function CafeMap({ cafes, isLoading, error, onSelectCafe, onSearchArea, i
             key={cafe.id}
             id={cafe.id}
             coordinate={[cafe.longitude, cafe.latitude]}
-            onSelected={() => onSelectCafe?.(cafe.id)}
+            onSelected={() => {
+              setSelectedCafeId((currentCafeId) => {
+                if (currentCafeId === cafe.id) {
+                  onSelectCafe?.(cafe.id);
+                  return currentCafeId;
+                }
+
+                return cafe.id;
+              });
+            }}
+            onDeselected={() => setSelectedCafeId((currentId) => (currentId === cafe.id ? null : currentId))}
           >
             <View style={styles.markerContainer}>
               <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
             </View>
-            <Mapbox.Callout title={cafe.name} />
+            <View
+              style={[
+                styles.selectedCafeLabel,
+                selectedCafeId === cafe.id ? styles.selectedCafeLabelVisible : styles.selectedCafeLabelHidden,
+              ]}
+            >
+              <Text numberOfLines={1} style={styles.selectedCafeLabelText}>
+                {cafe.name}
+              </Text>
+            </View>
           </Mapbox.PointAnnotation>
         ))}
       </Mapbox.MapView>
@@ -185,6 +214,30 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.text,
     color: COLORS.textPrimary,
     fontFamily: TYPOGRAPHY.fontFamily.bold,
+  },
+  selectedCafeLabel: {
+    position: 'absolute',
+    bottom: '100%',
+    marginBottom: TYPOGRAPHY.spacing.xs,
+    alignSelf: 'center',
+    maxWidth: 180,
+    borderRadius: TYPOGRAPHY.border_radius.card,
+    paddingVertical: TYPOGRAPHY.spacing.xs,
+    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.textPrimary,
+  },
+  selectedCafeLabelVisible: {
+    opacity: 1,
+  },
+  selectedCafeLabelHidden: {
+    opacity: 0,
+  },
+  selectedCafeLabelText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSize.text,
+    fontFamily: TYPOGRAPHY.fontFamily.medium,
   },
   searchButtonContainer: {
     position: 'absolute',
