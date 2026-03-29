@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MapPlaceholder } from '../../components/MapPlaceholder';
+import { CafeMap } from '../../components/map/CafeMap';
 import { MapFilterBar } from '../../components/MapFilterBar';
 import { AppButton } from '../../components/AppButton';
 import { useMapFilters } from '../../hooks/useMapFilters';
@@ -108,7 +108,12 @@ export default function Index() {
           }
         />
       ) : (
-        <MapPlaceholder onSelectCafe={handleCafeSelect} />
+        <CafeMap
+          cafes={cafes}
+          isLoading={isLoading}
+          error={error}
+          onSelectCafe={handleCafeSelect}
+        />
       )}
 
       <View style={styles.filterOverlay} onLayout={handleOverlayLayout}>
