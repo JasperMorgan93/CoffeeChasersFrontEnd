@@ -18,6 +18,9 @@ interface CafeMapProps {
   isSearchingArea?: boolean;
 }
 
+const INITIAL_ZOOM_LEVEL = 15;
+const MARKER_VISIBILITY_ZOOM_LEVEL = 13.25;
+
 export function CafeMap({
   cafes,
   isLoading,
@@ -28,6 +31,9 @@ export function CafeMap({
 }: CafeMapProps) {
   const { centerCoordinate, cafesWithCoordinates } = useCafeMapData(cafes);
   const cameraRef = useRef<Mapbox.Camera>(null);
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const [currentZoomLevel, setCurrentZoomLevel] = useState(INITIAL_ZOOM_LEVEL);
+  const [hasSearchAreaOverride, setHasSearchAreaOverride] = useState(false);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
   const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
@@ -43,10 +49,37 @@ export function CafeMap({
 
     let isMounted = true;
 
+    const updateUserCoordinate = ({
+      longitude,
+      latitude,
+    }: {
+      longitude: number;
+      latitude: number;
+    }) => {
+      if (!isMounted) {
+        return;
+      }
+
+      if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+        setUserCoordinate([longitude, latitude]);
+      }
+    };
+
     const loadUserCoordinate = async () => {
+      let locationSubscription: Location.LocationSubscription | null = null;
+
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== Location.PermissionStatus.GRANTED) {
+        const hasPermission = status === Location.PermissionStatus.GRANTED;
+
+        if (!isMounted) {
+          return;
+        }
+
+        setHasLocationPermission(hasPermission);
+
+        if (!hasPermission) {
+          setUserCoordinate(null);
           return;
         }
 
@@ -54,23 +87,44 @@ export function CafeMap({
           accuracy: Location.Accuracy.Balanced,
         });
 
-        if (!isMounted) {
-          return;
-        }
+        updateUserCoordinate(location.coords);
 
-        const { longitude, latitude } = location.coords;
-        if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-          setUserCoordinate([longitude, latitude]);
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            distanceInterval: 10,
+            timeInterval: 5000,
+          },
+          ({ coords }) => {
+            updateUserCoordinate(coords);
+          }
+        );
+
+        if (!isMounted) {
+          locationSubscription.remove();
         }
       } catch (locationError) {
+        if (isMounted) {
+          setHasLocationPermission(false);
+        }
+
         console.warn('Unable to read current user location.', locationError);
       }
+
+      return () => {
+        locationSubscription?.remove();
+      };
     };
 
-    loadUserCoordinate();
+    let cleanupLocationSubscription: (() => void) | undefined;
+
+    void loadUserCoordinate().then((cleanup) => {
+      cleanupLocationSubscription = cleanup;
+    });
 
     return () => {
       isMounted = false;
+      cleanupLocationSubscription?.();
     };
   }, []);
 
@@ -79,14 +133,37 @@ export function CafeMap({
     [centerCoordinate, userCoordinate]
   );
 
-  const handleCameraChanged = useCallback(() => {
-    if (!isLoading) {
-      setShowSearchButton(true);
+  const areCafeMarkersVisible =
+    currentZoomLevel >= MARKER_VISIBILITY_ZOOM_LEVEL || hasSearchAreaOverride;
+
+  const handleCameraChanged = useCallback(
+    (state: {
+      properties?: { zoom?: number };
+      gestures?: { isGestureActive?: boolean };
+    }) => {
+    const zoom = state.properties?.zoom;
+
+    if (typeof zoom === 'number' && Number.isFinite(zoom)) {
+      setCurrentZoomLevel(zoom);
+
+      if (zoom < MARKER_VISIBILITY_ZOOM_LEVEL && hasSearchAreaOverride) {
+        setSelectedCafeId(null);
+        setHasSearchAreaOverride(false);
+      }
     }
-  }, [isLoading]);
+
+      if (state.gestures?.isGestureActive) {
+        if (!isLoading) {
+          setShowSearchButton(true);
+        }
+      }
+    },
+    [hasSearchAreaOverride, isLoading]
+  );
 
   const handleSearchArea = useCallback(() => {
     setShowSearchButton(false);
+    setHasSearchAreaOverride(true);
     onSearchArea?.();
   }, [onSearchArea]);
 
@@ -135,31 +212,46 @@ export function CafeMap({
       >
         <Mapbox.Camera
           ref={cameraRef}
-          zoomLevel={12}
+          zoomLevel={INITIAL_ZOOM_LEVEL}
           centerCoordinate={mapCenterCoordinate}
           animationMode="flyTo"
         />
 
-        {cafesWithCoordinates.map((cafe) => (
-          <Mapbox.PointAnnotation
-            key={cafe.id}
-            id={cafe.id}
-            coordinate={[cafe.longitude, cafe.latitude]}
-            onSelected={() => {
-              setSelectedCafeId((currentCafeId) => {
-                if (currentCafeId === cafe.id) {
-                  onSelectCafe?.(cafe.id);
-                  return currentCafeId;
-                }
-
-                return cafe.id;
-              });
+        {hasLocationPermission ? (
+          <Mapbox.LocationPuck
+            visible
+            puckBearing="heading"
+            puckBearingEnabled
+            pulsing={{
+              isEnabled: true,
+              color: COLORS.textPrimaryMuted,
+              radius: 48,
             }}
-            onDeselected={() =>
-              setSelectedCafeId((currentId) => (currentId === cafe.id ? null : currentId))
-            }
+          />
+        ) : null}
+
+        {areCafeMarkersVisible
+          ? cafesWithCoordinates.map((cafe) => (
+          <Mapbox.MarkerView
+            key={cafe.id}
+            coordinate={[cafe.longitude, cafe.latitude]}
+            anchor={{ x: 0.5, y: 1 }}
+            allowOverlap
+            allowOverlapWithPuck
           >
-            <View style={styles.annotationContainer}>
+            <Pressable
+              onPress={() => {
+                setSelectedCafeId((currentCafeId) => {
+                  if (currentCafeId === cafe.id) {
+                    onSelectCafe?.(cafe.id);
+                    return currentCafeId;
+                  }
+
+                  return cafe.id;
+                });
+              }}
+              style={({ pressed }) => [styles.annotationContainer, pressed && styles.markerPressed]}
+            >
               {selectedCafeId === cafe.id ? (
                 <View style={styles.selectedCafeLabel}>
                   <Text numberOfLines={2} style={styles.selectedCafeLabelText}>
@@ -171,9 +263,10 @@ export function CafeMap({
               <View style={styles.markerContainer}>
                 <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
               </View>
-            </View>
-          </Mapbox.PointAnnotation>
-        ))}
+            </Pressable>
+          </Mapbox.MarkerView>
+            ))
+          : null}
       </Mapbox.MapView>
 
       {showSearchButton && !isLoading ? (
@@ -242,6 +335,9 @@ const styles = StyleSheet.create({
   },
   annotationContainer: {
     alignItems: 'center',
+  },
+  markerPressed: {
+    opacity: 0.9,
   },
   markerContainer: {
     backgroundColor: COLORS.surface,
