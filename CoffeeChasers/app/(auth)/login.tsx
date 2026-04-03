@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: TYPOGRAPHY.spacing.xl,
   },
   title: {
-    fontSize: 32,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
+    fontSize: TYPOGRAPHY.fontSize.logo,
+    fontFamily: TYPOGRAPHY.fontFamily.logo,
     color: COLORS.textPrimary,
     textAlign: 'center',
     marginBottom: TYPOGRAPHY.spacing.xs,

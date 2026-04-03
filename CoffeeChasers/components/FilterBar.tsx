@@ -41,7 +41,7 @@ export function FilterBar<T extends string, F extends Record<string, any>>({
         <Text style={[styles.filterLabel, isActive && styles.filterLabelActive]}>
           {filterOption.label}
         </Text>
-        {isActive && <Ionicons name="checkmark-circle" size={16} color={COLORS.surface} />}
+        {isActive && <Ionicons name="checkmark-circle" size={14} color={COLORS.surface} />}
       </Pressable>
     );
   };
@@ -107,32 +107,32 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: TYPOGRAPHY.spacing.md,
-    gap: TYPOGRAPHY.spacing.sm,
+    gap: TYPOGRAPHY.spacing.xs,
   },
   verticalContent: {
     paddingHorizontal: TYPOGRAPHY.spacing.md,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: TYPOGRAPHY.spacing.sm,
+    gap: TYPOGRAPHY.spacing.xs,
   },
   filterChip: {
     backgroundColor: COLORS.surface,
     borderRadius: TYPOGRAPHY.border_radius.round_corner,
-    paddingHorizontal: TYPOGRAPHY.spacing.md,
-    paddingVertical: TYPOGRAPHY.spacing.sm,
+    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    paddingVertical: TYPOGRAPHY.spacing.xs,
     borderWidth: 1,
-    borderColor: COLORS.textPrimaryMuted,
+    borderColor: 'rgba(62, 39, 35, 0.28)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: TYPOGRAPHY.spacing.xs,
-    minHeight: 36,
+    gap: 6,
+    minHeight: 30,
   },
   filterChipActive: {
     backgroundColor: COLORS.textPrimary,
     borderColor: COLORS.textPrimary,
   },
   filterLabel: {
-    fontSize: TYPOGRAPHY.fontSize.text,
+    fontSize: 13,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
     color: COLORS.textPrimary,
   },
@@ -142,15 +142,15 @@ const styles = StyleSheet.create({
   clearButton: {
     backgroundColor: 'transparent',
     borderRadius: TYPOGRAPHY.border_radius.round_corner,
-    paddingHorizontal: TYPOGRAPHY.spacing.md,
-    paddingVertical: TYPOGRAPHY.spacing.sm,
+    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    paddingVertical: TYPOGRAPHY.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: TYPOGRAPHY.spacing.xs,
-    minHeight: 36,
+    gap: 6,
+    minHeight: 30,
   },
   clearLabel: {
-    fontSize: TYPOGRAPHY.fontSize.text,
+    fontSize: 13,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
     color: COLORS.textPrimaryMuted,
   },

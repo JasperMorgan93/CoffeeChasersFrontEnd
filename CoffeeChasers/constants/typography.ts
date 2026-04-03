@@ -3,8 +3,10 @@ export const TYPOGRAPHY = {
     regular: 'Inter_400Regular',
     medium: 'Inter_500Medium',
     bold: 'Inter_700Bold',
+    logo: 'Lobster_400Regular',
   },
   fontSize: {
+    logo: 52,
     title: 24,
     subtitle: 20,
     body: 16,

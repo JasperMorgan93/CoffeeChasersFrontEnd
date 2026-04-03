@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
+    fontFamily: TYPOGRAPHY.fontFamily.logo,
     color: COLORS.textPrimary,
     textAlign: 'center',
     marginBottom: TYPOGRAPHY.spacing.xs,

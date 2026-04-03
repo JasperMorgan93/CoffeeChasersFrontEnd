@@ -40,7 +40,7 @@ export function MapFilterBar({
       getFilterActiveState={getFilterActiveState}
       settings={{
         transparent: true,
-        useSafeArea: true,
+        useSafeArea: false,
         showClearAll: true,
         horizontal: true,
       }}
