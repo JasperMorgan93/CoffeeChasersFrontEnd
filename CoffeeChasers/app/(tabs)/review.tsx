@@ -15,7 +15,7 @@ export default function Review() {
     [currentStep],
   );
 
-  const descriptor = clampedStep <= 3 ? 'Okay' : clampedStep <= 5 ? 'Good' : clampedStep <= 7 ? 'Great' : 'Perfect';
+  const descriptor = clampedStep <= 3 ? 'Okay' : clampedStep <= 5 ? 'Good' : clampedStep <= 7 ? 'Great' : clampedStep === 10 ? 'Perfect' : 'Excellent';
 
   return (
     <View style={styles.container}>

@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { CafeMapContainer } from '../../components/map/CafeMapContainer';
 import { MapFilterBar } from '../../components/MapFilterBar';
+import RatingBeanIcon from '../../components/RatingBeanIcon';
 import { useMapFilters } from '../../hooks/useMapFilters';
 import { useCafes } from '../../hooks/useCafes';
 import { COLORS } from '../../constants/colors';
@@ -177,7 +178,9 @@ export default function Index() {
           <Text style={styles.cafeName} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text style={styles.cafeRating}>{item.rating.toFixed(1)}</Text>
+          <View style={styles.cafeRating}>
+            <RatingBeanIcon rating={item.rating} size={UI.slider.knobSize * 0.68} />
+          </View>
         </View>
         <Text style={styles.cafeAddress} numberOfLines={2}>
           {item.address}
@@ -349,9 +352,8 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   cafeRating: {
-    fontSize: TYPOGRAPHY.fontSize.text,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.textPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cafeAddress: {
     fontSize: TYPOGRAPHY.fontSize.text,

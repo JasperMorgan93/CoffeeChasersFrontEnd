@@ -4,7 +4,7 @@ import Mapbox from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
-import { getRoastMarkerColors, roastProgressFromRating } from '../../constants/roast';
+import RatingBeanIcon from '../RatingBeanIcon';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { UI } from '../../constants/ui';
 import { Cafe } from '../../types/cafe';
@@ -22,6 +22,9 @@ interface CafeMapProps {
 
 const INITIAL_ZOOM_LEVEL = 15;
 const MARKER_VISIBILITY_ZOOM_LEVEL = 13.25;
+const MIN_MARKER_BEAN_SIZE = 18;
+const MAX_MARKER_BEAN_SIZE = 34;
+const MAX_MARKER_SCALE_ZOOM_LEVEL = 17.5;
 
 export function CafeMap({
   cafes,
@@ -138,6 +141,25 @@ export function CafeMap({
   const areCafeMarkersVisible =
     currentZoomLevel >= MARKER_VISIBILITY_ZOOM_LEVEL || hasSearchAreaOverride;
 
+  const markerBeanSize = useMemo(() => {
+    const zoomRange = MAX_MARKER_SCALE_ZOOM_LEVEL - MARKER_VISIBILITY_ZOOM_LEVEL;
+
+    if (zoomRange <= 0) {
+      return MAX_MARKER_BEAN_SIZE;
+    }
+
+    const normalizedZoom = (currentZoomLevel - MARKER_VISIBILITY_ZOOM_LEVEL) / zoomRange;
+    const zoomProgress = Math.max(0, Math.min(1, normalizedZoom));
+
+    return Math.round(
+      MIN_MARKER_BEAN_SIZE + (MAX_MARKER_BEAN_SIZE - MIN_MARKER_BEAN_SIZE) * zoomProgress
+    );
+  }, [currentZoomLevel]);
+
+  const markerPadding = useMemo(() => {
+    return Math.max(3, Math.round(markerBeanSize * 0.16));
+  }, [markerBeanSize]);
+
   const handleCameraChanged = useCallback(
     (state: {
       properties?: { zoom?: number };
@@ -234,10 +256,6 @@ export function CafeMap({
 
         {areCafeMarkersVisible
           ? cafesWithCoordinates.map((cafe) => {
-              const roastMarkerColors = getRoastMarkerColors(
-                roastProgressFromRating(cafe.rating)
-              );
-
               return (
                 <Mapbox.MarkerView
                   key={cafe.id}
@@ -272,14 +290,13 @@ export function CafeMap({
                         style={[
                           styles.markerRoastFill,
                           {
-                            backgroundColor: roastMarkerColors.background,
-                            borderColor: roastMarkerColors.border,
+                            paddingVertical: markerPadding,
+                            paddingHorizontal: markerPadding,
                           },
+                          selectedCafeId === cafe.id && styles.markerRoastFillSelected,
                         ]}
                       >
-                        <Text style={[styles.markerText, { color: roastMarkerColors.text }]}> 
-                          {cafe.rating.toFixed(1)}
-                        </Text>
+                        <RatingBeanIcon rating={cafe.rating} size={markerBeanSize} />
                       </View>
                     </View>
                   </Pressable>
@@ -364,17 +381,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   markerRoastFill: {
-    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.textPrimary,
     borderRadius: TYPOGRAPHY.border_radius.round_corner,
-    paddingVertical: TYPOGRAPHY.spacing.xs,
-    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    borderColor: COLORS.textPrimaryMuted,
+    backgroundColor: COLORS.surface,
   },
-  markerText: {
-    fontSize: TYPOGRAPHY.fontSize.text,
-    color: COLORS.textPrimary,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
+  markerRoastFillSelected: {
+    borderColor: COLORS.textPrimary,
   },
   selectedCafeLabel: {
     marginBottom: TYPOGRAPHY.spacing.xs,
