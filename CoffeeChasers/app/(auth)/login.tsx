@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { UI } from '../../constants/ui';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginScreen() {
@@ -136,35 +137,35 @@ const styles = StyleSheet.create({
     marginBottom: TYPOGRAPHY.spacing.xl * 2,
   },
   form: {
-    gap: TYPOGRAPHY.spacing.md,
+    gap: UI.auth.formGap,
   },
   input: {
     backgroundColor: COLORS.surface,
-    borderRadius: 10,
+    borderRadius: UI.auth.inputRadius,
     paddingVertical: TYPOGRAPHY.spacing.sm,
     paddingHorizontal: TYPOGRAPHY.spacing.md,
     fontSize: TYPOGRAPHY.fontSize.body,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimary,
-    minHeight: 48,
+    minHeight: UI.auth.inputMinHeight,
   },
   errorText: {
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
-    color: '#c0392b',
+    color: COLORS.danger,
     textAlign: 'center',
   },
   button: {
     backgroundColor: COLORS.textPrimary,
-    borderRadius: 10,
+    borderRadius: UI.button.radius,
     paddingVertical: TYPOGRAPHY.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: UI.button.minHeightLg,
     marginTop: TYPOGRAPHY.spacing.sm,
   },
   buttonPressed: {
-    opacity: 0.8,
+    opacity: UI.auth.buttonPressedOpacity,
   },
   buttonText: {
     fontSize: TYPOGRAPHY.fontSize.body,
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
     paddingVertical: TYPOGRAPHY.spacing.sm,
   },
   linkButtonPressed: {
-    opacity: 0.6,
+    opacity: UI.auth.linkPressedOpacity,
   },
   linkText: {
     fontSize: TYPOGRAPHY.fontSize.text,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     marginTop: TYPOGRAPHY.spacing.xl,
     alignItems: 'center',
     paddingVertical: TYPOGRAPHY.spacing.sm,
-    borderTopWidth: 1,
+    borderTopWidth: UI.auth.devDividerWidth,
     borderTopColor: COLORS.textPrimaryMuted,
   },
   devButtonText: {

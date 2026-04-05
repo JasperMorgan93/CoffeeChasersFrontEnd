@@ -2,9 +2,9 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Lobster_400Regular } from '@expo-google-fonts/lobster';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { CORE_FONT_ASSETS } from '../constants/typography';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,12 +13,7 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  const [loaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_700Bold,
-    Lobster_400Regular,
-  });
+  const [loaded, fontError] = useFonts(CORE_FONT_ASSETS);
 
   useEffect(() => {
     if (loaded || fontError) {
@@ -54,8 +49,10 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

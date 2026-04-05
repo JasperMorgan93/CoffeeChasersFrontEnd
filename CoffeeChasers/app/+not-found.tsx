@@ -3,6 +3,7 @@ import { Link, Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { TYPOGRAPHY } from '../constants/typography';
 import { COLORS } from '@/constants/colors';
+import { UI } from '../constants/ui';
 
 export default function NotFoundScreen() {
   const router = useRouter();
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     marginTop: TYPOGRAPHY.spacing.xs,
   },
   linkPressed: {
-    opacity: 0.7,
+    opacity: UI.feedback.pressedSoftOpacity,
   },
   linkText: {
     fontSize: TYPOGRAPHY.fontSize.text,
