@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Link, Stack } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+import { AppButton } from '../components/AppButton';
 import { TYPOGRAPHY } from '../constants/typography';
 import { COLORS } from '@/constants/colors';
-import { UI } from '../constants/ui';
 
 export default function NotFoundScreen() {
   const router = useRouter();
@@ -24,12 +24,13 @@ export default function NotFoundScreen() {
       />
       <View style={styles.container}>
         <Text style={styles.title}>This page is roasting</Text>
-        <Pressable
-          style={({ pressed }) => [styles.link, pressed && styles.linkPressed]}
+        <AppButton
+          label="Go to home screen"
+          variant="ghost"
           onPress={() => router.push('/')}
-        >
-          <Text style={styles.linkText}>Go to home screen</Text>
-        </Pressable>
+          style={styles.link}
+          textStyle={styles.linkText}
+        />
       </View>
     </>
   );
@@ -51,9 +52,6 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: TYPOGRAPHY.spacing.xs,
-  },
-  linkPressed: {
-    opacity: UI.feedback.pressedSoftOpacity,
   },
   linkText: {
     fontSize: TYPOGRAPHY.fontSize.text,

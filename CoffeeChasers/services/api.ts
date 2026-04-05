@@ -93,6 +93,12 @@ interface ReviewApi {
   cafe?: { name?: string | null } | null;
 }
 
+interface CreateReviewRequest {
+  cafe_id: number | string;
+  rating: number;
+  coffee_type?: string;
+}
+
 const mapReview = (source: ReviewApi): ReviewHistoryEntry => ({
   id: String(source.id),
   cafeName: source.cafe?.name ?? `Cafe #${source.cafe_id}`,
@@ -262,6 +268,23 @@ class ApiService {
     }
   }
 
+  async createReview(data: CreateReviewRequest, signal?: AbortSignal): Promise<ReviewHistoryEntry> {
+    try {
+      const raw = await this.makeRequest<ReviewApi>('/reviews', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        signal,
+      });
+
+      return mapReview(raw);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to submit review: ${error.message}`);
+      }
+      throw new Error('Failed to submit review: Unknown error occurred');
+    }
+  }
+
   async getFilteredCafes(filters: MapFilters, signal?: AbortSignal): Promise<Cafe[]> {
     try {
       // Build query parameters based on active filters
@@ -311,7 +334,6 @@ class ApiService {
   }
 
   // Add other API methods as needed
-  // async createReview(review: CreateReviewRequest, signal?: AbortSignal): Promise<ReviewHistoryEntry> { ... }
   // async updateReview(id: string, review: UpdateReviewRequest, signal?: AbortSignal): Promise<ReviewHistoryEntry> { ... }
   // async deleteReview(id: string, signal?: AbortSignal): Promise<void> { ... }
 }
