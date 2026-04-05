@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Lobster_400Regular } from '@expo-google-fonts/lobster';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
@@ -16,6 +17,7 @@ function RootLayoutNav() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_700Bold,
+    Lobster_400Regular,
   });
 
   useEffect(() => {

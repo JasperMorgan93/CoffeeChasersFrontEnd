@@ -14,7 +14,8 @@ export default function TabsLayout() {
         },
         headerTintColor: COLORS.textPrimary,
         headerTitleStyle: {
-          fontFamily: TYPOGRAPHY.fontFamily.bold,
+          fontFamily: TYPOGRAPHY.fontFamily.logo,
+          fontSize: 28,
         },
         tabBarStyle: {
           backgroundColor: COLORS.background,
