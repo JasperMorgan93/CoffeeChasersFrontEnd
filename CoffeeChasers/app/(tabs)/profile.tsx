@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Pressable } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { UI } from '../../constants/ui';
 import { ReviewHistorySection } from '../../components/ReviewHistorySection';
 import { useReviewHistory } from '../../hooks/useReviewHistory';
 import { useAuth } from '../../contexts/AuthContext';
@@ -123,10 +124,10 @@ const styles = StyleSheet.create({
     paddingVertical: TYPOGRAPHY.spacing.sm,
     paddingHorizontal: TYPOGRAPHY.spacing.md,
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    borderRadius: TYPOGRAPHY.border_radius.button,
     borderWidth: 1,
     borderColor: COLORS.textPrimaryMuted,
-    minHeight: 44, // Accessibility - minimum touch target
+    minHeight: UI.button.minHeightMd,
   },
   retryText: {
     fontSize: TYPOGRAPHY.fontSize.body,
@@ -155,15 +156,15 @@ const styles = StyleSheet.create({
     paddingVertical: TYPOGRAPHY.spacing.xs,
     paddingHorizontal: TYPOGRAPHY.spacing.sm,
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    borderRadius: TYPOGRAPHY.border_radius.button,
     borderWidth: 1,
     borderColor: COLORS.textPrimaryMuted,
-    minHeight: 36,
+    minHeight: UI.button.minHeightSm,
     alignSelf: 'flex-start',
     justifyContent: 'center',
   },
   logoutButtonPressed: {
-    opacity: 0.7,
+    opacity: UI.feedback.pressedSoftOpacity,
   },
   logoutText: {
     fontSize: TYPOGRAPHY.fontSize.text,

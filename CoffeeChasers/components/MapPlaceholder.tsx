@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { TYPOGRAPHY } from '../constants/typography';
+import { UI } from '../constants/ui';
 
 interface MapPlaceholderProps {
   onSelectCafe?: (cafeId: string) => void;
@@ -17,7 +18,7 @@ export function MapPlaceholder({ onSelectCafe }: MapPlaceholderProps) {
 
   return (
     <View style={styles.container}>
-      <Ionicons name="map-outline" size={64} color={COLORS.textPrimaryMuted} />
+      <Ionicons name="map-outline" size={UI.placeholder.mapIconSize} color={COLORS.textPrimaryMuted} />
       <Text style={styles.label}>Map coming soon</Text>
       <Text style={styles.sublabel}>Mapbox integration pending</Text>
     </View>

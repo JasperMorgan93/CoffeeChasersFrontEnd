@@ -14,10 +14,12 @@ import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { CafeMapContainer } from '../../components/map/CafeMapContainer';
 import { MapFilterBar } from '../../components/MapFilterBar';
+import RatingBeanIcon from '../../components/RatingBeanIcon';
 import { useMapFilters } from '../../hooks/useMapFilters';
 import { useCafes } from '../../hooks/useCafes';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { UI } from '../../constants/ui';
 import { Cafe } from '../../types/cafe';
 
 export default function Index() {
@@ -176,7 +178,9 @@ export default function Index() {
           <Text style={styles.cafeName} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text style={styles.cafeRating}>{item.rating.toFixed(1)}</Text>
+          <View style={styles.cafeRating}>
+            <RatingBeanIcon rating={item.rating} size={UI.slider.knobSize * 0.68} />
+          </View>
         </View>
         <Text style={styles.cafeAddress} numberOfLines={2}>
           {item.address}
@@ -259,9 +263,9 @@ export default function Index() {
   );
 }
 
-const SHEET_MIN_EXPANDED_HEIGHT = 360;
-const SHEET_COLLAPSED_HEIGHT = 92;
-const SHEET_TOP_GAP = 8;
+const SHEET_MIN_EXPANDED_HEIGHT = UI.homeSheet.minExpandedHeight;
+const SHEET_COLLAPSED_HEIGHT = UI.homeSheet.collapsedHeight;
+const SHEET_TOP_GAP = UI.homeSheet.topGap;
 
 const styles = StyleSheet.create({
   container: {
@@ -277,8 +281,8 @@ const styles = StyleSheet.create({
   },
   bottomSheet: {
     position: 'absolute',
-    left: 10,
-    right: 10,
+    left: UI.homeSheet.horizontalInset,
+    right: UI.homeSheet.horizontalInset,
     bottom: 0,
     backgroundColor: COLORS.background,
     borderTopLeftRadius: TYPOGRAPHY.border_radius.round_corner,
@@ -289,11 +293,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.textPrimaryMuted,
     overflow: 'hidden',
     zIndex: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowColor: COLORS.shadowBase,
+    shadowOffset: UI.homeSheet.shadowOffset,
+    shadowOpacity: UI.homeSheet.shadowOpacity,
+    shadowRadius: UI.homeSheet.shadowRadius,
+    elevation: UI.homeSheet.elevation,
   },
   sheetHandle: {
     alignItems: 'center',
@@ -306,13 +310,13 @@ const styles = StyleSheet.create({
   },
   sheetHandleGestureArea: {
     zIndex: 30,
-    minHeight: 44,
+    minHeight: UI.homeSheet.handleGestureMinHeight,
     justifyContent: 'center',
   },
   sheetHandleBar: {
-    width: 42,
-    height: 4,
-    borderRadius: 99,
+    width: UI.homeSheet.handleBarWidth,
+    height: UI.homeSheet.handleBarHeight,
+    borderRadius: UI.homeSheet.handleBarRadius,
     backgroundColor: COLORS.textPrimaryMuted,
   },
   sheetHandleText: {
@@ -348,9 +352,8 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   cafeRating: {
-    fontSize: TYPOGRAPHY.fontSize.text,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.textPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cafeAddress: {
     fontSize: TYPOGRAPHY.fontSize.text,

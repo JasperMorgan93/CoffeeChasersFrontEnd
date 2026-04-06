@@ -4,7 +4,9 @@ import Mapbox from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import RatingBeanIcon from '../RatingBeanIcon';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { UI } from '../../constants/ui';
 import { Cafe } from '../../types/cafe';
 import { useCafeMapData } from '../../hooks/useCafeMapData';
 import { hasMapboxAccessToken, initializeMapbox } from '../../services/mapbox';
@@ -20,6 +22,9 @@ interface CafeMapProps {
 
 const INITIAL_ZOOM_LEVEL = 15;
 const MARKER_VISIBILITY_ZOOM_LEVEL = 13.25;
+const MIN_MARKER_BEAN_SIZE = 18;
+const MAX_MARKER_BEAN_SIZE = 34;
+const MAX_MARKER_SCALE_ZOOM_LEVEL = 17.5;
 
 export function CafeMap({
   cafes,
@@ -136,21 +141,40 @@ export function CafeMap({
   const areCafeMarkersVisible =
     currentZoomLevel >= MARKER_VISIBILITY_ZOOM_LEVEL || hasSearchAreaOverride;
 
+  const markerBeanSize = useMemo(() => {
+    const zoomRange = MAX_MARKER_SCALE_ZOOM_LEVEL - MARKER_VISIBILITY_ZOOM_LEVEL;
+
+    if (zoomRange <= 0) {
+      return MAX_MARKER_BEAN_SIZE;
+    }
+
+    const normalizedZoom = (currentZoomLevel - MARKER_VISIBILITY_ZOOM_LEVEL) / zoomRange;
+    const zoomProgress = Math.max(0, Math.min(1, normalizedZoom));
+
+    return Math.round(
+      MIN_MARKER_BEAN_SIZE + (MAX_MARKER_BEAN_SIZE - MIN_MARKER_BEAN_SIZE) * zoomProgress
+    );
+  }, [currentZoomLevel]);
+
+  const markerPadding = useMemo(() => {
+    return Math.max(3, Math.round(markerBeanSize * 0.16));
+  }, [markerBeanSize]);
+
   const handleCameraChanged = useCallback(
     (state: {
       properties?: { zoom?: number };
       gestures?: { isGestureActive?: boolean };
     }) => {
-    const zoom = state.properties?.zoom;
+      const zoom = state.properties?.zoom;
 
-    if (typeof zoom === 'number' && Number.isFinite(zoom)) {
-      setCurrentZoomLevel(zoom);
+      if (typeof zoom === 'number' && Number.isFinite(zoom)) {
+        setCurrentZoomLevel(zoom);
 
-      if (zoom < MARKER_VISIBILITY_ZOOM_LEVEL && hasSearchAreaOverride) {
-        setSelectedCafeId(null);
-        setHasSearchAreaOverride(false);
+        if (zoom < MARKER_VISIBILITY_ZOOM_LEVEL && hasSearchAreaOverride) {
+          setSelectedCafeId(null);
+          setHasSearchAreaOverride(false);
+        }
       }
-    }
 
       if (state.gestures?.isGestureActive) {
         if (!isLoading) {
@@ -231,41 +255,54 @@ export function CafeMap({
         ) : null}
 
         {areCafeMarkersVisible
-          ? cafesWithCoordinates.map((cafe) => (
-          <Mapbox.MarkerView
-            key={cafe.id}
-            coordinate={[cafe.longitude, cafe.latitude]}
-            anchor={{ x: 0.5, y: 1 }}
-            allowOverlap
-            allowOverlapWithPuck
-          >
-            <Pressable
-              onPress={() => {
-                setSelectedCafeId((currentCafeId) => {
-                  if (currentCafeId === cafe.id) {
-                    onSelectCafe?.(cafe.id);
-                    return currentCafeId;
-                  }
+          ? cafesWithCoordinates.map((cafe) => {
+              return (
+                <Mapbox.MarkerView
+                  key={cafe.id}
+                  coordinate={[cafe.longitude, cafe.latitude]}
+                  anchor={{ x: 0.5, y: 1 }}
+                  allowOverlap
+                  allowOverlapWithPuck
+                >
+                  <Pressable
+                    onPress={() => {
+                      setSelectedCafeId((currentCafeId) => {
+                        if (currentCafeId === cafe.id) {
+                          onSelectCafe?.(cafe.id);
+                          return currentCafeId;
+                        }
 
-                  return cafe.id;
-                });
-              }}
-              style={({ pressed }) => [styles.annotationContainer, pressed && styles.markerPressed]}
-            >
-              {selectedCafeId === cafe.id ? (
-                <View style={styles.selectedCafeLabel}>
-                  <Text numberOfLines={2} style={styles.selectedCafeLabelText}>
-                    {cafe.name}
-                  </Text>
-                </View>
-              ) : null}
+                        return cafe.id;
+                      });
+                    }}
+                    style={({ pressed }) => [styles.annotationContainer, pressed && styles.markerPressed]}
+                  >
+                    {selectedCafeId === cafe.id ? (
+                      <View style={styles.selectedCafeLabel}>
+                        <Text numberOfLines={2} style={styles.selectedCafeLabelText}>
+                          {cafe.name}
+                        </Text>
+                      </View>
+                    ) : null}
 
-              <View style={styles.markerContainer}>
-                <Text style={styles.markerText}>{cafe.rating.toFixed(1)}</Text>
-              </View>
-            </Pressable>
-          </Mapbox.MarkerView>
-            ))
+                    <View style={styles.markerContainer}>
+                      <View
+                        style={[
+                          styles.markerRoastFill,
+                          {
+                            paddingVertical: markerPadding,
+                            paddingHorizontal: markerPadding,
+                          },
+                          selectedCafeId === cafe.id && styles.markerRoastFillSelected,
+                        ]}
+                      >
+                        <RatingBeanIcon rating={cafe.rating} size={markerBeanSize} />
+                      </View>
+                    </View>
+                  </Pressable>
+                </Mapbox.MarkerView>
+              );
+            })
           : null}
       </Mapbox.MapView>
 
@@ -291,7 +328,7 @@ export function CafeMap({
           onPress={handleRecenterToUser}
           disabled={!userCoordinate}
         >
-          <Ionicons name="locate" size={18} color={COLORS.background} />
+          <Ionicons name="locate" size={UI.map.recenterButtonIconSize} color={COLORS.background} />
         </Pressable>
       </View>
 
@@ -319,7 +356,7 @@ interface MapFallbackProps {
 function MapFallback({ title, subtitle }: MapFallbackProps) {
   return (
     <View style={styles.fallbackContainer}>
-      <Ionicons name="map-outline" size={64} color={COLORS.textPrimaryMuted} />
+      <Ionicons name="map-outline" size={UI.placeholder.mapIconSize} color={COLORS.textPrimaryMuted} />
       <Text style={styles.fallbackLabel}>{title}</Text>
       <Text style={styles.fallbackSublabel}>{subtitle}</Text>
     </View>
@@ -340,17 +377,17 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   markerContainer: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.textPrimary,
     borderRadius: TYPOGRAPHY.border_radius.round_corner,
-    paddingVertical: TYPOGRAPHY.spacing.xs,
-    paddingHorizontal: TYPOGRAPHY.spacing.sm,
+    overflow: 'hidden',
   },
-  markerText: {
-    fontSize: TYPOGRAPHY.fontSize.text,
-    color: COLORS.textPrimary,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
+  markerRoastFill: {
+    borderWidth: 1,
+    borderRadius: TYPOGRAPHY.border_radius.round_corner,
+    borderColor: COLORS.textPrimaryMuted,
+    backgroundColor: COLORS.surface,
+  },
+  markerRoastFillSelected: {
+    borderColor: COLORS.textPrimary,
   },
   selectedCafeLabel: {
     marginBottom: TYPOGRAPHY.spacing.xs,
@@ -396,13 +433,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: TYPOGRAPHY.spacing.md,
     top: TYPOGRAPHY.spacing.xl * 8,
-    zIndex: 25,
-    elevation: 6,
+    zIndex: UI.map.recenterButtonZIndex,
+    elevation: UI.map.recenterButtonElevation,
   },
   recenterButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: UI.map.recenterButtonSize,
+    height: UI.map.recenterButtonSize,
+    borderRadius: UI.map.recenterButtonRadius,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.textPrimary,

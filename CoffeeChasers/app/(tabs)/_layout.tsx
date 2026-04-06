@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
+import { UI } from '../../constants/ui';
 
 export default function TabsLayout() {
   return (
@@ -15,11 +16,11 @@ export default function TabsLayout() {
         headerTintColor: COLORS.textPrimary,
         headerTitleStyle: {
           fontFamily: TYPOGRAPHY.fontFamily.logo,
-          fontSize: 28,
+          fontSize: UI.tabs.headerTitleSize,
         },
         tabBarStyle: {
           backgroundColor: COLORS.background,
-          height: 72,
+          height: UI.tabs.tabBarHeight,
         },
         tabBarActiveTintColor: COLORS.textPrimary,
         tabBarInactiveTintColor: COLORS.textPrimaryMuted,
@@ -67,7 +68,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? 'cafe' : 'cafe-outline'}
-              size={26}
+              size={UI.tabs.reviewIconSize}
               color={COLORS.background}
             />
           ),
@@ -94,18 +95,18 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   reviewTabButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: UI.tabs.reviewButtonSize,
+    height: UI.tabs.reviewButtonSize,
+    borderRadius: UI.tabs.reviewButtonRadius,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.textPrimary,
-    borderWidth: 3,
+    borderWidth: UI.tabs.reviewButtonBorderWidth,
     borderColor: COLORS.background,
-    marginTop: -20,
-    elevation: 4,
+    marginTop: UI.tabs.reviewButtonMarginTop,
+    elevation: UI.tabs.reviewButtonElevation,
   },
   reviewTabButtonPressed: {
-    opacity: 0.85,
+    opacity: UI.button.pressedOpacity,
   },
 });

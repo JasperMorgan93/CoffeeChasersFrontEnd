@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants/colors';
 import { TYPOGRAPHY } from '../constants/typography';
+import { UI } from '../constants/ui';
 
 type AppButtonProps = {
   label: string;
@@ -40,15 +41,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.textPrimary,
     paddingVertical: TYPOGRAPHY.spacing.sm,
     paddingHorizontal: TYPOGRAPHY.spacing.lg,
-    borderRadius: 10,
+    borderRadius: UI.button.radius,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: UI.button.minHeightMd,
   },
   buttonPressed: {
-    opacity: 0.85,
+    opacity: UI.button.pressedOpacity,
   },
   buttonDisabled: {
-    opacity: 0.5,
+    opacity: UI.button.disabledOpacity,
   },
   label: {
     color: COLORS.background,

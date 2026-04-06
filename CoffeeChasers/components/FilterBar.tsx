@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/colors';
 import { TYPOGRAPHY } from '../constants/typography';
+import { UI } from '../constants/ui';
 import { FilterBarProps, FilterBarSettings } from '../types/filters';
 
 const defaultSettings: FilterBarSettings = {
@@ -41,7 +42,9 @@ export function FilterBar<T extends string, F extends Record<string, any>>({
         <Text style={[styles.filterLabel, isActive && styles.filterLabelActive]}>
           {filterOption.label}
         </Text>
-        {isActive && <Ionicons name="checkmark-circle" size={14} color={COLORS.surface} />}
+        {isActive && (
+          <Ionicons name="checkmark-circle" size={UI.filter.checkIconSize} color={COLORS.surface} />
+        )}
       </Pressable>
     );
   };
@@ -51,7 +54,7 @@ export function FilterBar<T extends string, F extends Record<string, any>>({
 
     return (
       <Pressable style={styles.clearButton} onPress={onClearAll}>
-        <Ionicons name="close-circle" size={16} color={COLORS.textPrimaryMuted} />
+        <Ionicons name="close-circle" size={UI.filter.clearIconSize} color={COLORS.textPrimaryMuted} />
         <Text style={styles.clearLabel}>Clear</Text>
       </Pressable>
     );
@@ -89,16 +92,13 @@ export function FilterBar<T extends string, F extends Record<string, any>>({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: COLORS.surfaceElevated,
     paddingVertical: TYPOGRAPHY.spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: COLORS.shadowBase,
+    shadowOffset: UI.filter.containerShadowOffset,
+    shadowOpacity: UI.filter.containerShadowOpacity,
+    shadowRadius: UI.filter.containerShadowRadius,
+    elevation: UI.filter.containerElevation,
   },
   transparentContainer: {
     backgroundColor: 'transparent',
@@ -121,18 +121,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: TYPOGRAPHY.spacing.sm,
     paddingVertical: TYPOGRAPHY.spacing.xs,
     borderWidth: 1,
-    borderColor: 'rgba(62, 39, 35, 0.28)',
+    borderColor: COLORS.borderSubtle,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    minHeight: 30,
+    gap: UI.filter.chipGap,
+    minHeight: UI.filter.chipMinHeight,
   },
   filterChipActive: {
     backgroundColor: COLORS.textPrimary,
     borderColor: COLORS.textPrimary,
   },
   filterLabel: {
-    fontSize: 13,
+    fontSize: UI.filter.labelFontSize,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
     color: COLORS.textPrimary,
   },
@@ -146,11 +146,11 @@ const styles = StyleSheet.create({
     paddingVertical: TYPOGRAPHY.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    minHeight: 30,
+    gap: UI.filter.chipGap,
+    minHeight: UI.filter.chipMinHeight,
   },
   clearLabel: {
-    fontSize: 13,
+    fontSize: UI.filter.labelFontSize,
     fontFamily: TYPOGRAPHY.fontFamily.medium,
     color: COLORS.textPrimaryMuted,
   },
