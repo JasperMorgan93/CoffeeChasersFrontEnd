@@ -55,6 +55,25 @@ interface ApiError extends Error {
   code?: string;
 }
 
+type ApiErrorPayload = {
+  detail?: string;
+  message?: string;
+  error?: string;
+};
+
+const parseApiErrorMessage = (errorText: string) => {
+  if (!errorText) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(errorText) as ApiErrorPayload;
+    return payload.detail ?? payload.message ?? payload.error ?? errorText;
+  } catch {
+    return errorText;
+  }
+};
+
 const parseOpeningHours = (source: CafeDetailsApi): string[] => {
   if (Array.isArray(source.openingHours)) {
     return source.openingHours.filter(Boolean);
@@ -160,8 +179,9 @@ class ApiService {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
+        const apiMessage = parseApiErrorMessage(errorText);
         const apiError = new Error(
-          `API Error: ${response.status} - ${response.statusText}`
+          apiMessage || `API Error: ${response.status} - ${response.statusText || 'Request failed'}`
         ) as ApiError;
         apiError.status = response.status;
         apiError.code = response.status.toString();
@@ -210,9 +230,7 @@ class ApiService {
       });
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(
-          `Login failed: Please check your email and password and try again. (${error.message})`
-        );
+        throw new Error(`Login failed: ${error.message}`);
       }
       throw new Error('Login failed: Unknown error occurred');
     }
@@ -225,6 +243,12 @@ class ApiService {
       });
     } catch (error) {
       if (error instanceof Error) {
+        if (error.message.toLowerCase().includes('rate limit exceeded')) {
+          throw new Error(
+            'Registration is temporarily rate limited by the development API. Wait a bit and try again, or sign in with an existing account.'
+          );
+        }
+
         throw new Error(`Registration failed: ${error.message}`);
       }
       throw new Error('Registration failed: Unknown error occurred');
