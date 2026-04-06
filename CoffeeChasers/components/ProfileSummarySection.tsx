@@ -201,7 +201,7 @@ export function ProfileSummarySection({ entries }: ProfileSummarySectionProps) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Profile Summary</Text>
+      <Text style={styles.sectionTitle}>Your Coffee Stats</Text>
       <View style={styles.grid}>
         {tiles.map((tile) => (
           <ProfileSummaryTile
