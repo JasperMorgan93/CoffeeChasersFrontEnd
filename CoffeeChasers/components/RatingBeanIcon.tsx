@@ -15,7 +15,7 @@ const clamp = (value: number, min: number, max: number) => {
 };
 
 export default function RatingBeanIcon({ rating, size = UI.slider.knobSize }: RatingBeanIconProps) {
-  const normalizedRating = Number.isFinite(rating) ? clamp(Math.round(rating), MIN_RATING, MAX_RATING) : MIN_RATING;
+  const normalizedRating = Number.isFinite(rating) ? clamp(rating, MIN_RATING, MAX_RATING) : MIN_RATING;
   const roastColors = getRoastBeanColors(roastProgressFromRating(normalizedRating, MAX_RATING, MIN_RATING));
 
   const innerSize = Math.max(2, size - UI.slider.beanInnerInset);
