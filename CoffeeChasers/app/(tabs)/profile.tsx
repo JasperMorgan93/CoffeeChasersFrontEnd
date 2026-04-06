@@ -3,6 +3,7 @@ import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { UI } from '../../constants/ui';
 import { AppButton } from '../../components/AppButton';
+import { ProfileSummarySection } from '../../components/ProfileSummarySection';
 import { ReviewHistorySection } from '../../components/ReviewHistorySection';
 import { useReviewHistory } from '../../hooks/useReviewHistory';
 import { useAuth } from '../../contexts/AuthContext';
@@ -57,9 +58,6 @@ export default function Profile() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>{user?.name ?? 'My Profile'}</Text>
-          <Text style={styles.subtitle}>
-            {user?.email ?? 'Your account details will appear here.'}
-          </Text>
         </View>
         <AppButton
           label="Sign out"
@@ -69,6 +67,8 @@ export default function Profile() {
           textStyle={styles.logoutText}
         />
       </View>
+
+      <ProfileSummarySection entries={reviewHistory} />
 
       {renderReviewSection()}
     </ScrollView>
