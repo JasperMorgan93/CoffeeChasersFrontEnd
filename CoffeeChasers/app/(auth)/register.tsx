@@ -1,16 +1,15 @@
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
-  ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { AppButton } from '../../components/AppButton';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { UI } from '../../constants/ui';
@@ -118,27 +117,23 @@ export default function RegisterScreen() {
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          <AppButton
+            label="Create account"
+            variant="primary"
+            isLoading={isSubmitting}
             onPress={handleRegister}
             disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color={COLORS.surface} />
-            ) : (
-              <Text style={styles.buttonText}>Create account</Text>
-            )}
-          </Pressable>
+            style={styles.button}
+          />
 
-          <Pressable
-            style={({ pressed }) => [styles.linkButton, pressed && styles.linkButtonPressed]}
+          <AppButton
+            label="Sign in"
+            variant="ghost"
             onPress={() => router.back()}
             disabled={isSubmitting}
-          >
-            <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkTextBold}>Sign in</Text>
-            </Text>
-          </Pressable>
+            style={styles.linkButton}
+            textStyle={styles.linkText}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -190,36 +185,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: COLORS.textPrimary,
-    borderRadius: UI.button.radius,
-    paddingVertical: TYPOGRAPHY.spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
     minHeight: UI.button.minHeightLg,
     marginTop: TYPOGRAPHY.spacing.sm,
   },
-  buttonPressed: {
-    opacity: UI.auth.buttonPressedOpacity,
-  },
-  buttonText: {
-    fontSize: TYPOGRAPHY.fontSize.body,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.surface,
-  },
   linkButton: {
-    alignItems: 'center',
-    paddingVertical: TYPOGRAPHY.spacing.sm,
-  },
-  linkButtonPressed: {
-    opacity: UI.auth.linkPressedOpacity,
+    marginTop: TYPOGRAPHY.spacing.xs,
+    alignSelf: 'center',
   },
   linkText: {
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimaryMuted,
-  },
-  linkTextBold: {
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.textPrimary,
   },
 });

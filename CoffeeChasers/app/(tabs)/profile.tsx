@@ -1,7 +1,8 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { UI } from '../../constants/ui';
+import { AppButton } from '../../components/AppButton';
 import { ReviewHistorySection } from '../../components/ReviewHistorySection';
 import { useReviewHistory } from '../../hooks/useReviewHistory';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,13 +25,15 @@ export default function Profile() {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
-          <Pressable style={styles.retryButton} onPress={refetch} disabled={isRefetching}>
-            {isRefetching ? (
-              <ActivityIndicator size="small" color={COLORS.textPrimary} />
-            ) : (
-              <Text style={styles.retryText}>Tap to retry</Text>
-            )}
-          </Pressable>
+          <AppButton
+            label="Tap to retry"
+            onPress={refetch}
+            disabled={isRefetching}
+            isLoading={isRefetching}
+            variant="light"
+            style={styles.retryButton}
+            textStyle={styles.retryText}
+          />
         </View>
       );
     }
@@ -58,12 +61,13 @@ export default function Profile() {
             {user?.email ?? 'Your account details will appear here.'}
           </Text>
         </View>
-        <Pressable
-          style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}
+        <AppButton
+          label="Sign out"
           onPress={logout}
-        >
-          <Text style={styles.logoutText}>Sign out</Text>
-        </Pressable>
+          variant="light"
+          style={styles.logoutButton}
+          textStyle={styles.logoutText}
+        />
       </View>
 
       {renderReviewSection()}
@@ -121,12 +125,6 @@ const styles = StyleSheet.create({
     marginBottom: TYPOGRAPHY.spacing.md,
   },
   retryButton: {
-    paddingVertical: TYPOGRAPHY.spacing.sm,
-    paddingHorizontal: TYPOGRAPHY.spacing.md,
-    backgroundColor: COLORS.surface,
-    borderRadius: TYPOGRAPHY.border_radius.button,
-    borderWidth: 1,
-    borderColor: COLORS.textPrimaryMuted,
     minHeight: UI.button.minHeightMd,
   },
   retryText: {
@@ -153,18 +151,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   logoutButton: {
-    paddingVertical: TYPOGRAPHY.spacing.xs,
-    paddingHorizontal: TYPOGRAPHY.spacing.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: TYPOGRAPHY.border_radius.button,
-    borderWidth: 1,
-    borderColor: COLORS.textPrimaryMuted,
     minHeight: UI.button.minHeightSm,
     alignSelf: 'flex-start',
-    justifyContent: 'center',
-  },
-  logoutButtonPressed: {
-    opacity: UI.feedback.pressedSoftOpacity,
   },
   logoutText: {
     fontSize: TYPOGRAPHY.fontSize.text,

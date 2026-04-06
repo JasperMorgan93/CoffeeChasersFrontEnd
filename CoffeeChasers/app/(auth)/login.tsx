@@ -1,15 +1,14 @@
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
-  ActivityIndicator,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { AppButton } from '../../components/AppButton';
 import { COLORS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { UI } from '../../constants/ui';
@@ -79,33 +78,33 @@ export default function LoginScreen() {
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          <AppButton
+            label="Sign in"
+            isLoading={isSubmitting}
+            variant="primary"
             onPress={handleLogin}
             disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color={COLORS.surface} />
-            ) : (
-              <Text style={styles.buttonText}>Sign in</Text>
-            )}
-          </Pressable>
+            style={styles.button}
+          />
 
-          <Pressable
-            style={({ pressed }) => [styles.linkButton, pressed && styles.linkButtonPressed]}
+          <AppButton
+            label="Create one"
+            variant="ghost"
             onPress={() => router.push('/(auth)/register')}
             disabled={isSubmitting}
-          >
-            <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkTextBold}>Create one</Text>
-            </Text>
-          </Pressable>
+            style={styles.linkButton}
+            textStyle={styles.linkText}
+          />
         </View>
 
         {__DEV__ && devBypass && (
-          <Pressable style={styles.devButton} onPress={devBypass}>
-            <Text style={styles.devButtonText}>⚙ Dev bypass (not in production)</Text>
-          </Pressable>
+          <AppButton
+            label="Dev bypass (not in production)"
+            variant="ghost"
+            onPress={devBypass}
+            style={styles.devButton}
+            textStyle={styles.devButtonText}
+          />
         )}
       </View>
     </KeyboardAvoidingView>
@@ -156,44 +155,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: COLORS.textPrimary,
-    borderRadius: UI.button.radius,
-    paddingVertical: TYPOGRAPHY.spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
     minHeight: UI.button.minHeightLg,
     marginTop: TYPOGRAPHY.spacing.sm,
   },
-  buttonPressed: {
-    opacity: UI.auth.buttonPressedOpacity,
-  },
-  buttonText: {
-    fontSize: TYPOGRAPHY.fontSize.body,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.surface,
-  },
   linkButton: {
-    alignItems: 'center',
-    paddingVertical: TYPOGRAPHY.spacing.sm,
-  },
-  linkButtonPressed: {
-    opacity: UI.auth.linkPressedOpacity,
+    marginTop: TYPOGRAPHY.spacing.xs,
+    alignSelf: 'center',
   },
   linkText: {
     fontSize: TYPOGRAPHY.fontSize.text,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     color: COLORS.textPrimaryMuted,
   },
-  linkTextBold: {
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    color: COLORS.textPrimary,
-  },
   devButton: {
     marginTop: TYPOGRAPHY.spacing.xl,
-    alignItems: 'center',
-    paddingVertical: TYPOGRAPHY.spacing.sm,
+    alignSelf: 'center',
     borderTopWidth: UI.auth.devDividerWidth,
     borderTopColor: COLORS.textPrimaryMuted,
+    borderRadius: 0,
   },
   devButtonText: {
     fontSize: TYPOGRAPHY.fontSize.text,
